@@ -35,13 +35,19 @@ export class Interp {
   private tick = Number.NaN;
   private holding = false;
   /** Movers the story holds at a drawn place (the sim keeps its own); `to` null walks back to the sim's spot, then lets go. */
-  private readonly staged = new Map<string, { at: V | null; to: V | null; v: V }>();
+  private readonly staged = new Map<string, { at: V | null; to: V | null; v: V; face: boolean }>();
 
   /** Walk a mover to `to` and hold it there (drawn only); null walks it back. */
-  stage(key: string, to: V | null): void {
+  stage(key: string, to: V | null, opts?: { from?: V; face?: boolean }): void {
     const s = this.staged.get(key);
-    if (s) s.to = to;
-    else if (to) this.staged.set(key, { at: null, to, v: { x: 0, y: 0 } });
+    if (s) { s.to = to; s.face = !!opts?.face && !!to; }
+    else if (to) this.staged.set(key, { at: opts?.from ? { ...opts.from } : null, to, v: { x: 0, y: 0 }, face: !!opts?.face });
+  }
+
+  /** The mover stands still at a staged spot meant to face the commander (story: a speaker turns to the one they talk to). */
+  facesPlayer(key: string): boolean {
+    const s = this.staged.get(key);
+    return !!s?.face && !!s.at && s.v.x === 0 && s.v.y === 0;
   }
 
   /** Per frame: move the staged movers along, `dt` seconds. */

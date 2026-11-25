@@ -1,6 +1,6 @@
 import { viewWidth } from "@fo/content";
 import { FP, TPS, type SimEvent, type State } from "@fo/sim";
-import type { SkinStory, StoryAction, StoryCameraBeat, StoryCastRef, StoryCue, StoryGhost, StoryGoal, StoryHudPart, StoryLevel, StoryPlace, StoryTrigger } from "@fo/skins";
+import type { SkinStory, StoryAction, StoryCameraBeat, StoryCastRef, StoryCond, StoryCue, StoryGhost, StoryGoal, StoryHudPart, StoryLevel, StoryPlace, StoryTrigger } from "@fo/skins";
 import { CameraBeatPlayer, type BeatCamera } from "./camera.js";
 
 // Plays a level's story cues on top of the sim. It reads state and events and never writes to either:
@@ -59,6 +59,12 @@ export interface StoryHost {
   fall?(o: { kind: string; zoom?: number; pitch?: number; film?: string }): Promise<void>;
   /** The commander kneels and lifts what was picked up at `at` (StoryAction kneel); resolves when the lift ends. */
   kneel?(at: { x: number; y: number }): Promise<void>;
+  /** Whether a world point is on screen now (with a margin): the stage step waits for a speaker to be in frame. */
+  inFrame?(p: { x: number; y: number }): boolean;
+  /** Where a cast member's drawn figure is (renderer key), or null. */
+  drawnAt?(key: string): { x: number; y: number } | null;
+  /** A point just outside the frame on the line from `to` toward `from`: where a speaker walks in from. Null: no such point. */
+  entryFrom?(to: { x: number; y: number }, from: { x: number; y: number }): { x: number; y: number } | null;
   /** Restart the level. */
   retry(): void;
   /** A goal's turn came and it is settled: chime and toast. */
@@ -88,18 +94,19 @@ export interface StoryWorld {
   /** Cast key of the speaker whose line is on screen. */
   talker: string | null;
   /** Cast members held at a drawn place (see the walk action); a null `to` walks them back. */
-  actors: readonly { who: string; to: { x: number; y: number } | null }[];
+  actors: readonly { who: string; to: { x: number; y: number } | null; from?: { x: number; y: number }; face?: boolean }[];
   /** Vehicles in the world (see the vehicle action); `seq` counts requests so a redrive reads as new. */
-  /** Rhee's aid station is up beside the reactor (see the aidStation action). */
-  aid: boolean;
   vehicles: readonly { id: string; path: readonly { x: number; y: number }[]; seconds: number; lights: boolean; seq: number; rider?: number }[];
 }
 
 type QueueItem = StoryAction | { goalCard: string; id: string };
 
-const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "kneel" in a || "wait" in a || "card" in a || "day" in a || "freeze" in a || ("tap" in a && !("line" in a));
-const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "kioskLit" in a || "kioskRestore" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "aidStation" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
+const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "kneel" in a || "wait" in a || "card" in a || "day" in a || "stage" in a || "freeze" in a || ("tap" in a && !("line" in a));
+const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "kioskLit" in a || "kioskRestore" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
 const CARD_SECONDS = 3;
+/** A stage step gives up after this long (a blocked walk must not hang the level). */
+const STAGE_TIMEOUT_S = 8;
+const STAGE_SPOT: readonly [number, number] = [-16, 24];
 const GOAL_GAP_S = 0.7;
 const TAP_GUARD_MS = 250;
 
@@ -109,6 +116,8 @@ export const lineSeconds = (text: string): number => Math.max(2, text.trim().spl
 type Active =
   | { k: "timed"; left: number; end: () => void; freezes: boolean }
   | { k: "wait"; freezes: boolean }
+  /** The stage step: waits for a cast member to be beside the commander (`key`) or, for one the story cannot walk, in frame. */
+  | { k: "stage"; who: string; key: string | null; spot: StoryPlace | null; left: number; freezes: boolean }
   | { k: "camera"; beat: CameraBeatPlayer; freezes: boolean };
 
 export class StoryDirector {
@@ -135,6 +144,11 @@ export class StoryDirector {
   private readonly counts = new Map<object, number>();
   private readonly cardDone = new Set<string>();
   private active: Active | null = null;
+  private st: State | null = null;
+  /** The last `guide` action's target: what the arrows do when no guide rule matches. */
+  private cueGuide: { off: boolean; to: { x: number; y: number } | null };
+  /** Lines already sent through an automatic stage step (each is staged once). */
+  private readonly autoStaged = new WeakSet<object>();
   private explicitFreeze = false;
   private readonly hidden: Set<StoryHudPart>;
   private held: (() => void) | null = null;
@@ -162,7 +176,8 @@ export class StoryDirector {
     /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
     private readonly fromRetrySpot = false,
   ) {
-    this.world = { light: null, ghosts: [], dots: null, kioskLit: true, kioskRestore: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [], vehicles: [], aid: !!level.aidStation };
+    this.world = { light: null, ghosts: [], dots: null, kioskLit: true, kioskRestore: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [], vehicles: [] };
+    this.cueGuide = { off: !!level.noGuide, to: null };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
     if (level.openZoom && !replay && !fromRetrySpot) {
@@ -227,6 +242,7 @@ export class StoryDirector {
 
   /** Call for every sim event, before the client acts on level_end. */
   onEvent(e: SimEvent, st: State): void {
+    this.st = st;
     if (e.t === "released") this.fromCapture.set(e.capture, e.resident);
     const at = (e as { at?: { x: number; y: number } }).at;
     if (at) this.lastAt.set(e.t, { x: at.x / FP, y: at.y / FP });
@@ -253,6 +269,7 @@ export class StoryDirector {
   /** Call after each sim step. */
   afterTick(st: State): void {
     const p = st.player.pos;
+    this.st = st;
     this.tick = st.tick;
     for (const c of this.level.cues) {
       if (this.armed(c) && (this.timeReached(c.on, st) || this.playerNear(c.on, p.x / FP, p.y / FP) || this.hostileNear(c.on, st) || this.stalledNow(c.on, st))) this.fire(c, st);
@@ -265,6 +282,7 @@ export class StoryDirector {
   update(dtMs: number, st: State): void {
     if (this.disposed) return;
     const dt = dtMs / 1000;
+    this.st = st;
     this.tick = st.tick;
     this.objectives = st.objectives;
     this.lastAt.set("player", { x: st.player.pos.x / FP, y: st.player.pos.y / FP });
@@ -280,6 +298,11 @@ export class StoryDirector {
       a.left -= dt;
       if (a.left <= 0) { this.active = null; this.view.onTap(null); a.end(); }
     } else if (a?.k === "camera" && a.beat.step(dt)) this.active = null;
+    else if (a?.k === "stage") {
+      a.left -= dt;
+      if (a.left <= 0 || this.staged(a, st)) this.active = null;
+    }
+    this.stepGuideRules(st);
     this.pump();
     this.gap = Math.max(0, this.gap - dt);
     this.advanceGoals();
@@ -407,12 +430,6 @@ export class StoryDirector {
     return !!p && (p.x - x) ** 2 + (p.y - y) ** 2 <= on.r * on.r;
   }
 
-  /** Where the aid station stands: beside the reactor, on its south-east side, in world units; null before the reactor is placed. */
-  aidAt(): { x: number; y: number } | null {
-    const c = this.host.entityAt("core");
-    return c ? { x: c.x + 60, y: c.y + 70 } : null;
-  }
-
   private place(p: StoryPlace): { x: number; y: number } | null {
     if ("last" in p) {
       const at = this.lastAt.get(p.last);
@@ -440,8 +457,15 @@ export class StoryDirector {
     if ("goalCard" in a) {
       this.view.goalCard?.(a.goalCard);
       this.waitTap(() => { this.view.clearGoalCard?.(); this.cardDone.add(a.id); this.syncGoals(this.tokens); });
+    } else if ("stage" in a) {
+      this.startStage(a.stage, a.by ?? STAGE_SPOT);
     } else if ("line" in a || "crew" in a) {
       const who = a.who, sp = who !== undefined ? this.story.speakers[who] : undefined;
+      if (this.level.autoStage && who !== undefined && !this.autoStaged.has(a) && this.needsStage(who)) {
+        this.autoStaged.add(a);
+        this.queue.unshift({ stage: who }, a);
+        return;
+      }
       // every line pauses play until a tap (a line still typing completes first)
       this.view.line({
         name: sp?.name ?? who ?? "", text: "line" in a ? a.line : a.crew, portrait: sp?.portrait, tag: "crew" in a ? a.tag ?? sp?.tag : undefined,
@@ -523,15 +547,14 @@ export class StoryDirector {
       this.world = { ...this.world, flash: { n: a.ridgeFlash, seq: ++this.seq } };
     } else if ("spirit" in a) {
       this.world = { ...this.world, spirit: { state: a.spirit, seq: ++this.seq } };
-    } else if ("aidStation" in a) {
-      this.world = { ...this.world, aid: true };
     } else if ("spiritFollow" in a) {
       this.world = { ...this.world, follow: a.spiritFollow || null };
     } else if ("edgeGlow" in a) {
       const g = a.edgeGlow ? this.place(a.edgeGlow) : null;
       this.world = { ...this.world, glow: g && a.edgeGlow ? { ...g, ...(a.edgeGlow.size !== undefined ? { size: a.edgeGlow.size } : {}), ...(a.edgeGlow.strength !== undefined ? { strength: a.edgeGlow.strength } : {}), ...(a.edgeGlow.arrow ? { arrow: true } : {}) } : null };
     } else if ("guide" in a) {
-      this.world = { ...this.world, guideOff: !a.guide, guideTo: a.guide && a.to ? this.place(a.to) : null };
+      this.cueGuide = { off: !a.guide, to: a.guide && a.to ? this.place(a.to) : null };
+      this.world = { ...this.world, guideOff: this.cueGuide.off, guideTo: this.cueGuide.to };
     }
   }
 
@@ -574,6 +597,70 @@ export class StoryDirector {
       () => this.host.retry(),
       () => { this.promptOpen = false; this.view.clearPrompt(); this.pump(); },
     );
+  }
+
+  // ------------------------------------------------------------------ staging and guide rules
+
+  /** A cast member the story walks (a drawn figure) or follows (a trader) who is not on screen now. */
+  private needsStage(who: string): boolean {
+    const st = this.st, c = this.castRef(who);
+    if (!st || !c || "player" in c || "at" in c || "entity" in c || "last" in c || !this.host.inFrame) return false;
+    const at = this.castAt(who, st);
+    return !!at && !this.host.inFrame(at);
+  }
+
+  /** Walk `who` in beside the commander and hold the queue until they have arrived (or, for a trader, are in frame). */
+  private startStage(who: string, by: readonly [number, number]): void {
+    const st = this.st, key = st ? this.castKey(who, st) : null;
+    const spot: StoryPlace = { last: "player", by };
+    const to = this.place(spot);
+    if (!st || !key || !to) {
+      // a trader walks in by herself with play running; wait until she is on screen
+      const c = this.castRef(who);
+      if (st && c && "customer" in c && this.host.inFrame) this.active = { k: "stage", who, key: null, spot: null, left: STAGE_TIMEOUT_S, freezes: false };
+      return;
+    }
+    const home = this.host.drawnAt?.(key) ?? this.castAt(who, st);
+    const from = home && this.host.inFrame && !this.host.inFrame(home) ? this.host.entryFrom?.(to, home) ?? null : null;
+    this.following.set(who, spot);
+    this.world = { ...this.world, actors: [...this.world.actors.filter((x) => x.who !== who), { who, to, face: true, ...(from ? { from } : {}) }] };
+    // play is held while they walk in, and they hold still once a line is up (the renderer)
+    const a: Extract<Active, { k: "stage" }> = { k: "stage", who, key, spot, left: STAGE_TIMEOUT_S, freezes: true };
+    if (!this.staged(a, st)) this.active = a;
+  }
+
+  /** True once the stage step's cast member is where the next line needs them. */
+  private staged(a: Extract<Active, { k: "stage" }>, st: State): boolean {
+    if (!a.key || !a.spot) {
+      const at = this.castAt(a.who, st);
+      return !at || !this.host.inFrame || this.host.inFrame(at);
+    }
+    if (!this.host.drawnAt) return true;
+    const at = this.host.drawnAt(a.key), to = this.place(a.spot);
+    return !at || !to || (at.x - to.x) ** 2 + (at.y - to.y) ** 2 <= 8 * 8;
+  }
+
+  private cond(c: StoryCond, st: State): boolean {
+    if ("fired" in c) return this.firedAt.has(c.fired);
+    if ("not" in c) return !this.firedAt.has(c.not);
+    if ("carrying" in c) return st.player.stack.includes(c.carrying);
+    if ("credits" in c) return st.currency >= c.credits;
+    if ("coinsWaiting" in c) return (st.sales?.pileN ?? 0) > 0;
+    const g = this.level.goals.find((x) => x.id === c.goal);
+    const done = g?.until ? this.stepDone.has(c.goal) : !!st.objectives.find((o) => o.id === c.goal)?.done;
+    return c.is === "done" ? done : !done;
+  }
+
+  /** Each frame the first matching guide rule sets the arrows, whatever the cues did last; none matching leaves the cue's choice. */
+  private stepGuideRules(st: State): void {
+    const rules = this.level.guideRules;
+    if (!rules?.length) return;
+    const r = rules.find((x) => x.when.every((c) => this.cond(c, st)));
+    const off = r ? !!r.off : this.cueGuide.off;
+    const to = r ? (r.off || !r.to ? null : this.place(r.to)) : this.cueGuide.to;
+    const w = this.world;
+    if (w.guideOff === off && w.guideTo?.x === to?.x && w.guideTo?.y === to?.y) return;
+    this.world = { ...w, guideOff: off, guideTo: to };
   }
 
   // ------------------------------------------------------------------ the cast

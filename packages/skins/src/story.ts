@@ -124,8 +124,6 @@ export type StoryAction =
   | { ridgeFlash: number }
   /** The reactor spirit: bloom out of the flare, glitch red, or an explicit state. */
   | { spirit: "bloom" | "pulse" | "idle" | "fading" | "off" }
-  /** Rhee's aid station (a med crate and a lamp) stands beside the reactor from here on. */
-  | { aidStation: true }
   /**
    * The cloud drifts to the player and floats beside them, at a fixed offset in screen directions (ground
    * units: `right` toward the screen's right, `up` toward its top) with a soft lag, its ground patch with it.
@@ -149,6 +147,13 @@ export type StoryAction =
    */
   | { walk: string; to: StoryPlace | false }
   /**
+   * Put a cast member on screen beside the commander before the next line: they walk in from just outside the frame (or
+   * from where they stand when that is already on screen) to `by` (default [-16, 24]) beside the commander, and the queue
+   * waits, play held, until they have arrived (about 8 s at most). Someone the story cannot walk (a trader) is waited for
+   * until they are in frame, with play running. Replaces a fixed `freeze` + `wait` around a walk-up.
+   */
+  | { stage: string; by?: readonly [number, number] }
+  /**
    * A vehicle drawn in the world (Sela's buggy, id "buggy"): it drives the `path` (places) over `seconds`, eased to a
    * stop at the last one, and stays parked there with its headlights on (`lights: false` for dark). Drawn only. `rider` (a cast key that is a customer) is
    * not drawn while the vehicle drives, and steps out beside it once it has parked.
@@ -156,6 +161,24 @@ export type StoryAction =
   | { vehicle: string; path: readonly StoryPlace[]; seconds?: number; lights?: boolean; rider?: string }
   /** Take a vehicle out of the world. */
   | { vehicleOff: string };
+
+/** One test on the game's state, for StoryGuideRule.when. */
+export type StoryCond =
+  /** A cue with this id has fired. */
+  | { fired: string }
+  /** No cue with this id has fired yet. */
+  | { not: string }
+  /** The commander carries this resource. */
+  | { carrying: string }
+  /** At least this many credits in hand. */
+  | { credits: number }
+  /** Coins wait at the register for the commander to collect. */
+  | { coinsWaiting: true }
+  /** A goal (sim objective or story step) is done / still open. */
+  | { goal: string; is: "done" | "open" };
+
+/** The arrows go to `to` (or off) whenever every condition holds; the first matching rule wins each frame. */
+export interface StoryGuideRule { when: readonly StoryCond[]; to?: StoryPlace; off?: boolean }
 
 export interface StoryCue {
   /** Needed only when another cue's `after` names it. */
@@ -240,6 +263,14 @@ export interface StoryLevel {
   noWallMarks?: boolean;
   /** Three slots over the hero's head fill with the pods in tow, so the tow limit shows (story level 2). */
   tally?: boolean;
+  /**
+   * State-driven guide arrows: each frame the first rule whose conditions all hold sets where the arrows lead, however
+   * the player got there. When none matches, the last `guide` action's target stands (so a level adds rules only for
+   * the states that go stale).
+   */
+  guideRules?: readonly StoryGuideRule[];
+  /** A line whose speaker is off screen first stages them (see the stage action). */
+  autoStage?: boolean;
   /** Customers drawn with their own character model: customer id (spawn order) to model id (story level 3: Sela). */
   customerModels?: Readonly<Record<number, string>>;
   /** Hostiles drawn with another character model once they break off (bossRetreat): kind to model id (story level 5:
@@ -251,8 +282,6 @@ export interface StoryLevel {
   /** Captures that wait on a `hiddenUntil` are drawn dark where they lie (no glow, no pointer), and cannot be towed until
    *  revealed (story level 2: the lander's escape pod, lit by KILN's line after the pair). */
   darkPods?: boolean;
-  /** Rhee's aid station stands beside the reactor from the first frame (story levels 3-5; level 2 adds it by cue). */
-  aidStation?: boolean;
 }
 
 export interface StorySpeaker {

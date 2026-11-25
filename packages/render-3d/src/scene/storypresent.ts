@@ -1,6 +1,6 @@
 import type { Object3D } from "three";
 import type { CameraBeat, FallScene, KneelScene, RidgeSide, StoryPresentation, StoryVehicleSpec, TallySlots } from "../contract.js";
-import { AidStation, StoryProps } from "./storyprop.js";
+import { StoryProps } from "./storyprop.js";
 import type { RideExit } from "./selaride.js";
 import type { Interp } from "../interp.js";
 import type { CoreSpirit } from "./corespirit.js";
@@ -46,7 +46,9 @@ export class StoryPresent implements StoryPresentation {
   talking = false;
   kioskLit = true;
   kioskRestore: number | null = null;
-  actor(key: string, to: { x: number; z: number } | null): void { this.movers?.stage(key, to ? { x: to.x, y: to.z } : null); }
+  actor(key: string, to: { x: number; z: number } | null, opts?: { from?: { x: number; z: number }; face?: boolean }): void {
+    this.movers?.stage(key, to ? { x: to.x, y: to.z } : null, { ...(opts?.from ? { from: { x: opts.from.x, y: opts.from.z } } : {}), ...(opts?.face ? { face: true } : {}) });
+  }
   actorAt(key: string): { x: number; z: number } | null {
     const p = this.movers?.pos(key, { x: Number.NaN, y: Number.NaN }, 1);
     return p && Number.isFinite(p.x) ? { x: p.x, z: p.y } : null;
@@ -56,8 +58,6 @@ export class StoryPresent implements StoryPresentation {
   vehicle(id: string, spec: StoryVehicleSpec | null): void { this.props.vehicle(id, spec); }
   /** Where a caption for customer `id` sits while she rides (see StoryProps.riderRoot). */
   riderRoot(id: number): Object3D | null { return this.props.riderRoot(id); }
-  private readonly aid = new AidStation((o) => this.lights.attach(o), (o) => this.lights.detach(o));
-  aidStation(at: { x: number; z: number } | null): void { this.aid.set(at); }
   /** Captures hidden by a manifest `hiddenUntil` are drawn dark where they lie; the renderer reads it. */
   darkShown = false;
   showDark(on: boolean): void { this.darkShown = on; }

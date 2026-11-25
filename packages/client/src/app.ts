@@ -902,6 +902,13 @@ export class App {
     return new StoryStage(story, s.director, present, (p, h) => s.renderer.worldToScreen(p, h), this.el.ftoast.parentElement!, this.skin.palette.guideLight, this.skin.palette.ridgeRed, () => this.groundW(s), (k) => s.renderer.characterHead(k));
   }
 
+  /** A world point on screen (inside the stage rectangle grown by `margin` of its size; a negative margin shrinks it). */
+  private inFrame(s: Session, p: { x: number; y: number }, margin: number): boolean {
+    const r = this.el.stage.getBoundingClientRect(), q = s.renderer.worldToScreen(p);
+    const mx = r.width * margin, my = r.height * margin;
+    return q.x >= -mx && q.x <= r.width + mx && q.y >= -my && q.y <= r.height + my;
+  }
+
   /** Ground width across the screen now: the family's view width over the camera zoom (KILN's size, S40). */
   private groundW(s: Session): number { return viewWFor(s.manifest.family) / (s.cam.zoom || 1); }
 
@@ -927,6 +934,17 @@ export class App {
         if (!ok && o.film && filmDue(o.film, this.progress.cinematics)) await this.cinematic(o.film as CinematicId);
       },
       kneel: async (at) => { await s.renderer.story()?.kneel({ at }); },
+      inFrame: (p) => this.inFrame(s, p, 0.04),
+      drawnAt: (k) => { const a = s.renderer.story()?.actorAt(k); return a ? { x: a.x, y: a.z } : null; },
+      entryFrom: (to, from) => {
+        // walk the ray from the spot toward the figure's home out to just past the screen edge
+        const far = Math.hypot(from.x - to.x, from.y - to.y);
+        if (far < 1) return null;
+        const at = (d: number): { x: number; y: number } => ({ x: to.x + ((from.x - to.x) * d) / far, y: to.y + ((from.y - to.y) * d) / far });
+        let lo = 0, hi = far;
+        for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (this.inFrame(s, at(mid), 0.06)) lo = mid; else hi = mid; }
+        return at(Math.min(far, hi));
+      },
       inset: (f) => { void playCinematic(this.el.app, f as CinematicId, { scene: this.skin.story?.scenes?.[f], inset: true }); },
       retry: () => void this.openLevel(s.meta, true),
       goalSettled: (label, done) => {
