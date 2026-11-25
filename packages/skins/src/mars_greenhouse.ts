@@ -1270,7 +1270,7 @@ export const marsGreenhouse: Skin = {
         solid: ["sink.core"],
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam, then Sela's two drivers
-        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { entity: "kiosk" } },
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 0 } },
         goals: [
           { id: "arrive", hold: true, label: "Let the newcomers in" },
           { id: "galleyBuilt", hold: true, label: "Build the galley" },
@@ -1307,8 +1307,9 @@ export const marsGreenhouse: Skin = {
             { walk: "rhee", to: false },
             // Sela's buggy pulls up at the kiosk again; her three hands climb out and walk to the camp gate (the arrivals
             // rule: they spawn near the kiosk, level params gate.spawnOffsetY)
-            { vehicle: "buggy", path: [{ at: [950, 1160] }, { at: [700, 1170] }, { at: [450, 1175] }, { at: [292, 1150] }], seconds: 8, lights: true },
+            { vehicle: "buggy", path: [{ at: [950, 1160] }, { at: [700, 1170] }, { at: [450, 1175] }, { at: [292, 1150] }], seconds: 8, lights: true, rider: "sela" },
             { wait: 4.5 },
+            { stage: "sela" },
             { line: "Storm season's close. The towns will pay well for hot meals.", who: "sela" },
             { line: "I've brought three hands who want steady work. They're at your gate.", who: "sela" },
             { line: "Stand by the gate to let them in.", who: "kiln" },
@@ -1330,7 +1331,7 @@ export const marsGreenhouse: Skin = {
           // Tam's greens now go to the galley (the galley pad's repoint): no pad, no cost
           { on: { goal: "galleyBuilt", is: "done" }, ordered: true, do: [
             // Tam walks up beside the commander before she speaks, so she is on screen for her line
-            { walk: "tam", to: { last: "player", by: [-16, 24] } },
+            { stage: "tam", by: [-16, 24] },
             { line: "Tam, greens go to the galley from now on.", who: "commander" },
             { line: "Greens to the galley. Fine.", who: "tam" },
             { walk: "tam", to: false },

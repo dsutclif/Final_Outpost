@@ -26,8 +26,6 @@ const ALLOW: readonly { level: string; check: TraceFailure["check"]; cue: string
   { level: "story-L003", check: "c", cue: "proteinTip", has: "play held", why: PHASE_B },
   { level: "story-L003", check: "a", cue: "hubDone", has: "sela speaks off screen", why: PHASE_B },
   { level: "story-L003", check: "c", cue: "hubDone", has: "play held", why: PHASE_B },
-  { level: "story-L004", check: "a", cue: "#1", has: "sela speaks off screen", why: PHASE_B },
-  { level: "story-L004", check: "a", cue: "#4", has: "tam speaks off screen", why: PHASE_B },
   { level: "story-L005", check: "a", cue: "#4", has: "settler speaks but has no place", why: PHASE_B },
   { level: "story-L005", check: "c", cue: "#4", has: "play held", why: PHASE_B },
   { level: "story-L005", check: "a", cue: "#9", has: "okafor speaks off screen", why: PHASE_B },
