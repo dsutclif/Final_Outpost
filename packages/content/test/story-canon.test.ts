@@ -47,9 +47,10 @@ const geo = (e: Ent, c: number[]): string => {
   if (e.points) o["points"] = e.points.map(s);
   if (e.site) o["site"] = s(e.site);
   if (e.route) o["route"] = e.route.map(s);
-  // hiddenUntil is when level 1 uncovers an ore pile (outpost-ops#125), not where it is
-  const { at, rect, points, site, route, hiddenUntil, ...rest } = e as Ent & { hiddenUntil?: string };
-  void at; void rect; void points; void site; void route; void hiddenUntil;
+  // hiddenUntil is when level 1 uncovers an ore pile (outpost-ops#125), not where it is; digAfter is when level 3 lets the
+  // rockslide be dug (outpost-ops#384), a play rule of that level, not the map
+  const { at, rect, points, site, route, hiddenUntil, digAfter, ...rest } = e as Ent & { hiddenUntil?: string; digAfter?: unknown };
+  void at; void rect; void points; void site; void route; void hiddenUntil; void digAfter;
   return JSON.stringify({ o, rest });
 };
 
