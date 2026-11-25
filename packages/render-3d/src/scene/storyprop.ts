@@ -1,5 +1,6 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PointLight, SphereGeometry, SpotLight, type Object3D } from "three";
 import RIG from "../assets/buggy.json";
+import { TURN_TAU } from "../facing.js";
 import { loadMeshy, meshyScene } from "../assets/meshy.js";
 import { SIZES } from "../sizes.js";
 import { ART_M } from "../units.js";
@@ -23,7 +24,9 @@ interface Run { spec: StoryVehicleSpec; len: number; segs: { x: number; z: numbe
   /** The rider (see riding()): her seated figure, the customer facts the renderer last gave, when the buggy first stood ready, and the exit's progress. */
   ride: SelaRide | null; info: { model: string; height: number; out: RideExit | null } | null; w0: number | null; exit: number;
   /** Where she stepped out (the door) and, once she is walking back to it to leave, the boarding: asked, and its start time on the renderer clock. */
-  door: { x: number; z: number } | null; boardReq: boolean; boardT0: number | null }
+  door: { x: number; z: number } | null; boardReq: boolean; boardT0: number | null;
+  /** Where a solo rider looks now: the point she was given, eased toward whoever she is talking to. */
+  face: { faceX: number; faceZ: number } | null }
 
 /** After the buggy parks: a beat sitting with the lights on, then the climb out. */
 const SIT = 0.5, EXIT = 1.3;
@@ -54,7 +57,7 @@ export class StoryProps {
       const a = pts[i - 1]!, b = pts[i]!, dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz);
       if (d > 0) { segs.push({ x: a.x, z: a.z, d: len, yaw: Math.atan2(dz, -dx) }); len += d; }
     }
-    this.runs.set(id, { spec, len, segs, t0: null, group: null, wheels: [], lamps: [], yaw: segs[0]?.yaw ?? 0, driven: 0, ride: null, info: null, w0: null, exit: 0, door: null, boardReq: false, boardT0: null });
+    this.runs.set(id, { spec, len, segs, t0: null, group: null, wheels: [], lamps: [], yaw: segs[0]?.yaw ?? 0, driven: 0, ride: null, info: null, w0: null, exit: 0, door: null, boardReq: false, boardT0: null, face: spec.solo ? { ...spec.solo } : null });
     if (!this.asked) { this.asked = true; void loadMeshy(undefined, new Set(MODELS), undefined, true); }
   }
 
@@ -130,7 +133,7 @@ export class StoryProps {
   /** Per frame, `t` seconds on the renderer clock. The drive's clock starts once the models are in, so a slow load never skips it. */
   /** Seconds the vehicles have stood still under a story line: their drive clock is the renderer clock minus this. */
   private held = 0;
-  update(t0: number, dt: number, hold = false): void {
+  update(t0: number, dt: number, hold = false, talkingTo?: (rider: number) => { x: number; z: number } | null): void {
     if (hold) this.held += dt;
     const t = t0 - this.held;
     for (const r of this.runs.values()) {
@@ -175,7 +178,10 @@ export class StoryProps {
         r.exit = since <= 0 ? 0 : Math.min(1, since / EXIT);
         // after the climb out the customer figure is drawn (riding() is false), so hers is put away
         r.ride.root.visible = r.ride.lamp.visible = r.exit < 1 || !!r.spec.solo;
-        r.ride.pose(g.position.x, g.position.z, g.rotation.y, ease(r.exit), r.info?.out ?? null, r.spec.solo);
+        // a solo rider in a conversation turns to the other speaker (the point is eased so the turn is smooth)
+        const to = r.face && r.spec.rider !== undefined ? talkingTo?.(r.spec.rider) : null;
+        if (to && r.face) { const k = 1 - Math.exp(-Math.max(0, dt) / TURN_TAU); r.face = { faceX: r.face.faceX + (to.x - r.face.faceX) * k, faceZ: r.face.faceZ + (to.z - r.face.faceZ) * k }; }
+        r.ride.pose(g.position.x, g.position.z, g.rotation.y, ease(r.exit), r.info?.out ?? null, r.face ?? undefined);
       } else r.exit = u < 1 ? 0 : 1;
     }
   }

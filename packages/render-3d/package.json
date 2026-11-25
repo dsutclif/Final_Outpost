@@ -17,7 +17,8 @@
     "./tokens": "./src/tokens.ts",
     "./padlock": "./src/padlock.ts",
     "./camframe": "./src/camframe.ts",
-    "./interp": "./src/interp.ts"
+    "./interp": "./src/interp.ts",
+    "./facing": "./src/facing.ts"
   },
   "scripts": {
     "dev": "vite dev --config dev/vite.config.ts"

@@ -3,6 +3,7 @@ import { Brain, PROFILES, planBot } from "@fo/bots";
 import { createSim, FP, seedRng, TPS, type SimEvent, type State } from "@fo/sim";
 import { marsGreenhouse, type SkinStory, type StoryAction, type StoryCue, type StoryLevel } from "@fo/skins";
 import { Interp } from "@fo/render-3d/interp";
+import { FACE_TOLERANCE, angleDiff, turnToward, yawTo } from "@fo/render-3d/facing";
 import { createCamera, DEFAULT_FOV, DEFAULT_PITCH, DEFAULT_YAW, followStep, onScreen, projectPoint, type FrameOpts } from "@fo/render-3d/camframe";
 import { StoryDirector, type DialogueLine, type StoryHost, type StoryView } from "./director.js";
 import { Guide } from "../guide.js";
@@ -14,6 +15,11 @@ import { Guide } from "../guide.js";
 //   pnpm story:trace <levelId> [--seed n]     (tools/story-trace.ts) writes docs/story-trace/<levelId>.txt
 //   traceStory(levelId, manifest) -> { rows, failures }   (client/test/story-trace.test.ts checks (a)-(f) for Levels 1-5)
 // Not imported by the app, so it is never bundled.
+//
+// Check (h), facing (Doug 2026-11-25: "all conversations should have the two speakers facing each other"): the trace keeps each cast
+// figure's drawn facing the way the renderer does (the way they last walked; a staged speaker stands turned to the commander; while a line
+// is up the talker and listener turn toward each other, render-3d facing.ts), and FACE_CHECK_S after a line shows both must be within
+// 30 degrees of pointing at each other. Lines with no listener (spirit voices, a building or a fixed spot speaking) are exempt.
 //
 // Frame loop mirrors app.ts frame(): director.update, then (not frozen) fixed-step the sim, events to the director,
 // afterTick, stop stepping when a cue froze play; then the renderer's camera follow. 60 frames a second.
@@ -33,9 +39,11 @@ const SPEAKER_INSET = 0.06; // a trader speaker's feet point must sit this far i
 const VEHICLE_HALF_W = 0.2; // a parked story vehicle is about 0.4 of the phone width wide: its centre keeps this far from the side edges
 const VEHICLE_HALF_LEN = 30; // world units: a parked story vehicle is about 60 long, so its body must clear a building by this much
 const MAX_SECONDS = 1500;
+/** Facing is checked this long after a line shows: the turn (render-3d facing.ts) is done by then. */
+const FACE_CHECK_S = 1;
 
 export interface TraceRow { tick: number; t: number; cue: string; what: string; detail: string }
-export interface TraceFailure { check: "a" | "b" | "c" | "d" | "e" | "f" | "g"; tick: number; t: number; cue: string; message: string }
+export interface TraceFailure { check: "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h"; tick: number; t: number; cue: string; message: string }
 export interface StoryTrace { level: string; seed: number; won: boolean | null; rows: TraceRow[]; failures: TraceFailure[] }
 
 export interface TraceOpts {
@@ -44,6 +52,8 @@ export interface TraceOpts {
   level?: StoryLevel;
 
   skinStory?: SkinStory;
+  /** Model the renderer's conversation facing (default true). False plays the old renderer, where a speaker only faces the way they last walked: a test uses it to show check (h) catches that. */
+  faceTalk?: boolean;
 }
 
 const r1 = (n: number): string => (Math.round(n * 10) / 10).toFixed(1);
@@ -273,6 +283,53 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
     }
   };
 
+  // ---- facing (h)
+  const faceTalk = opts.faceTalk !== false;
+  const figureCast = (who: string): boolean => { const c = who === "commander" ? { player: true } : level.cast?.[who]; return !!c && ("player" in c || "capture" in c || "person" in c || "boss" in c || "customer" in c); };
+  const figures = (): string[] => ["commander", ...Object.keys(level.cast ?? {}).filter(figureCast)];
+  const figurePos = (who: string): { x: number; y: number } | null => who === "commander" ? interp.pos("player", st.player.pos, 1) : speakerAt(who);
+  const yaws = new Map<string, number>();
+  const lastAt = new Map<string, { x: number; y: number }>();
+  const faceChecked = new Set<string>();
+  /** The renderer's frame, in the trace: walkers face their way, a staged speaker stands turned to the commander, a line turns its two speakers to each other. */
+  const stepFacing = (): void => {
+    const w = director.world;
+    for (const who of figures()) {
+      const at = figurePos(who);
+      if (!at) continue;
+      const prev = lastAt.get(who);
+      lastAt.set(who, { ...at });
+      let yaw = yaws.get(who) ?? 0;
+      if (prev && Math.hypot(at.x - prev.x, at.y - prev.y) > 0.01) yaw = Math.atan2(at.x - prev.x, at.y - prev.y);
+      else {
+        const key = who === "commander" ? "player" : director.castKey(who, st);
+        const me = interp.pos("player", st.player.pos, 1);
+        if (key && who !== "commander" && interp.facesPlayer(key)) yaw = yawTo(at, me);
+      }
+      yaws.set(who, yaw);
+    }
+    if (!faceTalk || !line || !w.talker || !w.listener) return;
+    for (const [who, other] of [[w.talker, w.listener], [w.listener, w.talker]] as const) {
+      const a = figurePos(who), b = figurePos(other);
+      if (a && b) yaws.set(who, turnToward(yaws.get(who) ?? 0, yawTo(a, b), FRAME_S));
+    }
+  };
+  const checkFacing = (): void => {
+    const w = director.world;
+    if (!line || !w.talker || !w.listener || clock - lineAt < FACE_CHECK_S) return;
+    const key = `${lineAt}`;
+    if (faceChecked.has(key)) return;
+    faceChecked.add(key);
+    const a = figurePos(w.talker), b = figurePos(w.listener);
+    if (!a || !b) return;
+    const bad: string[] = [];
+    for (const [who, p, q] of [[w.talker, a, b], [w.listener, b, a]] as const) {
+      const off = Math.abs(angleDiff(yaws.get(who) ?? 0, yawTo(p, q)));
+      if (off > FACE_TOLERANCE) bad.push(`${who} faces ${Math.round((yaws.get(who) ?? 0) * 180 / Math.PI)} deg, ${Math.round(off * 180 / Math.PI)} off the ${who === w.talker ? w.listener : w.talker}`);
+    }
+    if (bad.length) fail("h", `speakers do not face each other: ${bad.join("; ")} during "${line.text.slice(0, 40)}"`);
+  };
+
   // ---- guide arrows (d)
   let arrowKey = "";
   const arrowNow = (): { at: { x: number; y: number }; from: string } | null => {
@@ -361,7 +418,9 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
       followStep(cam, hero, FRAME_S, fo, cam.zoom, manifest.map, camFirst && cam.follow);
       if (cam.follow) camFirst = false;
       checkVehicles();
+      stepFacing();
       checkStill();
+      checkFacing();
       checkFreeze();
       if (!ended) checkArrow(sc.on);
       if (ended && !resultAsked && clock - endAt >= RESULT_WAIT_S) {

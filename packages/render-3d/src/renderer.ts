@@ -65,6 +65,7 @@ import { type FallScene, type LiveLook, type StoryPresentation, type AlertMark, 
 import { GeoBuilder, ROCKS } from "./geom.js";
 import { ghostSpec, type GhostSpec } from "./ghost.js";
 import { Interp, type V } from "./interp.js";
+import { turnToward, yawTo } from "./facing.js";
 import { DomCoach, DomPointers, injectStyle, type PointerTarget } from "./scene/dom.js";
 import { Fx } from "./scene/fx.js";
 import { GroundMarks } from "./scene/groundmarks.js";
@@ -168,7 +169,7 @@ const SCRAP_DECOR: ReadonlySet<string> = new Set(["decor.ship_scrap", "decor.shi
 const CORE_BURIED = 0.9;
 
 const NO_STORY: StoryPresentation = {
-  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, customerModel() {}, fleeingModel() {}, showDropped() {}, fall: () => Promise.resolve(false), kneel: () => Promise.resolve(false),
+  dots() {}, pod() {}, light() {}, lightLevel() {}, flashLight() {}, removeLight() {}, ridgeGlow: null, tally() {}, ridge() {}, ridgeSlow() {}, ridgeFlash() {}, ghosts() {}, lighting() {}, beat() {}, solid() {}, actor() {}, actorAt: () => null, converse() {}, customerModel() {}, fleeingModel() {}, showDropped() {}, fall: () => Promise.resolve(false), kneel: () => Promise.resolve(false),
   spirit: { setState() {}, setStrength() {}, bloom() {}, follow() {} },
   beating: false,
   scene: null,
@@ -1919,7 +1920,12 @@ export class Renderer3D implements Renderer {
     const look = lookFor(c.kind, this.tokens, this.skin.models);
     const vel = this.interp.vel(key);
     const moving = Math.hypot(vel.x, vel.y) > 0.05;
-    const yaw = moving ? Math.atan2(vel.x, vel.y) : queued ? Math.atan2(kiosk.model.root.position.x - pos.x, kiosk.model.root.position.z - pos.y) : this.yaw.get(key) ?? 0;
+    const yaw0 = moving ? Math.atan2(vel.x, vel.y) : queued ? Math.atan2(kiosk.model.root.position.x - pos.x, kiosk.model.root.position.z - pos.y) : this.yaw.get(key) ?? 0;
+    // a trader talking to the commander turns to him, not the kiosk, and stays turned until she walks
+    const tk = `ride:${c.id}`;
+    let yaw = yaw0;
+    if (moving) this.yaw.delete(tk);
+    else if (this.storyP?.faceFor(tk) || this.yaw.has(tk)) yaw = this.talkYaw(tk, pos, this.yaw.get(tk) ?? yaw0, moving);
     this.yaw.set(key, yaw);
     const anim = this.anim(key, moving ? 0.8 : 0, false);
     if (c.angry) anim.hit = 0.25 + 0.25 * Math.sin(this.t * 12);
@@ -3081,7 +3087,11 @@ export class Renderer3D implements Renderer {
     return Math.max(out && this.lifeK < 0.85 ? 0.6 : 0, low, w.core.fuel <= 0 ? 0.8 : 0);
   }
 
+  /** Seconds of the frame being drawn (for the smooth turns). */
+  private fdt = 1 / 60;
+
   private syncCharacters(s: State, a: number, pl: V, dt: number): void {
+    this.fdt = dt;
     const t = this.tokens;
     const items = this.items!;
     // player with the back stack
@@ -3093,7 +3103,7 @@ export class Renderer3D implements Renderer {
     anim.hit = this.fx!.flashK("player") * 0.6;
     const prig = this.rigged?.entryFor("unit.player");
     const pmove = this.moving > 0.15;
-    const pyaw = this.faceAct("player", pl, yaw, pmove);
+    const pyaw = this.talkYaw("player", pl, this.faceAct("player", pl, yaw, pmove), pmove);
     const ks = prig && this.kneelStage?.dur ? this.kneelStage : null;
     if (ks) this.kneelDraw(ks, ART_M * look.scale * this.devCharScale * this.heroK);
     else if (prig) {
@@ -3169,7 +3179,7 @@ export class Renderer3D implements Renderer {
       }
       // a story speaker staged beside the commander stands turned to him (Doug 2026-11-24: they faced away while talking)
       if (!moving && this.interp.facesPlayer(key)) this.acts.set(key, { act: "face", until: this.t + 0.3, at: { x: pl.x, y: pl.y } });
-      let ryaw = this.faceAct(key, pos, ry, moving);
+      let ryaw = this.talkYaw(key, pos, this.faceAct(key, pos, ry, moving), moving);
       const carrying = !!r.carry && r.n > 0;
       // shot down in the field (a guard left lying where it fell, with fall and get-up clips): it falls and lies on
       // the spot it was hit, gets up there once healed, then runs to where the sim already has it walking
@@ -3243,7 +3253,7 @@ export class Renderer3D implements Renderer {
       const pos = this.interp.pos(key, h.pos, a);
       const hv = this.interp.vel(key);
       const hl = lookFor(h.type, t, this.skin.models);
-      const hy = this.faceFrom(key, hv, 0);
+      const hy = this.talkYaw(key, pos, this.faceFrom(key, hv, 0), Math.hypot(hv.x, hv.y) > 0.05);
       const an = this.anim(key, Math.min(1, Math.hypot(hv.x, hv.y) / 1.2 + (h.target !== "core" ? 0.5 : 0)), false);
       const fk = this.fx!.flashK(key);
       an.hit = fk;
@@ -4082,6 +4092,18 @@ export class Renderer3D implements Renderer {
   }
 
   /** Faces a standing character toward what it works on or shoots at. */
+  /**
+   * While a story line is up its two speakers turn in place toward each other (Doug 2026-11-25), smoothly; a walker keeps
+   * facing its way. `yaw` is the facing this frame without the conversation; the result is kept as the character's facing.
+   */
+  private talkYaw(key: string, pos: V, yaw: number, moving: boolean): number {
+    const to = this.storyP?.faceFor(key);
+    if (!to || moving) return yaw;
+    const y = turnToward(yaw, yawTo(pos, { x: to.x, y: to.z }), this.fdt);
+    this.yaw.set(key, y);
+    return y;
+  }
+
   private faceAct(key: string, pos: V, yaw: number, moving: boolean): number {
     const a = this.actOf(key);
     if (moving || !a?.at) return yaw;

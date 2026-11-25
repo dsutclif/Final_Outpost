@@ -49,6 +49,19 @@ export class StoryPresent implements StoryPresentation {
   actor(key: string, to: { x: number; z: number } | null, opts?: { from?: { x: number; z: number }; face?: boolean }): void {
     this.movers?.stage(key, to ? { x: to.x, y: to.z } : null, { ...(opts?.from ? { from: { x: opts.from.x, y: opts.from.z } } : {}), ...(opts?.face ? { face: true } : {}) });
   }
+  /** The two characters talking now (StoryPresentation.converse). */
+  private pair: { a: { key: string; x: number; z: number }; b: { key: string; x: number; z: number } } | null = null;
+  converse(pair: { a: { key: string; x: number; z: number }; b: { key: string; x: number; z: number } } | null): void { this.pair = pair; }
+  /** Where `key` must look now: the other one of the pair they are talking with, or null. */
+  faceFor(key: string): { x: number; z: number } | null {
+    const p = this.pair;
+    if (!p) return null;
+    const other = p.a.key === key ? p.b : p.b.key === key ? p.a : null;
+    if (!other) return null;
+    // a trader still in her buggy (or stepping out) stands where her figure is drawn, not at the buggy's park point
+    const root = other.key.startsWith("ride:") ? this.props.riderRoot(Number(other.key.slice(5))) : null;
+    return root ? { x: root.position.x, z: root.position.z } : { x: other.x, z: other.z };
+  }
   actorAt(key: string): { x: number; z: number } | null {
     const p = this.movers?.pos(key, { x: Number.NaN, y: Number.NaN }, 1);
     return p && Number.isFinite(p.x) ? { x: p.x, z: p.y } : null;
@@ -191,7 +204,7 @@ export class StoryPresent implements StoryPresentation {
     for (const [id, l] of this.lamps) this.lights.lightLevel(id, this.allowed.has(l.goal ? 1 : 3) ? l.k : 0);
     if (this.dotPts) this.lights.groundDots(this.dotPts, t, { ...this.dotOpts, lit: this.dotOpts.lit !== false && this.allowed.has(4) });
     this.lights.update(t);
-    this.props.update(t, dt, !!this.scene && !this.scene.vehicles);
+    this.props.update(t, dt, !!this.scene && !this.scene.vehicles, (id) => this.faceFor(`ride:${id}`));
     this.ridgeGlow = this.ridgeSide ? { side: this.ridgeSide, k: this.ridgeNow(t) } : null;
     this.lights.ridgePulse("right", 0, cx, cz, halfW, halfH);
   }

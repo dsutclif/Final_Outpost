@@ -99,6 +99,8 @@ export interface StoryWorld {
   speaking: boolean;
   /** Cast key of the speaker whose line is on screen. */
   talker: string | null;
+  /** Cast key of who the talker is talking to while the line is on screen (the two turn to face each other); null: no one with a figure. */
+  listener: string | null;
   /** Cast members held at a drawn place (see the walk action); a null `to` walks them back. */
   actors: readonly { who: string; to: { x: number; y: number } | null; from?: { x: number; y: number }; face?: boolean }[];
   /** Vehicles in the world (see the vehicle action); `seq` counts requests so a redrive reads as new. */
@@ -135,6 +137,8 @@ const STAGE_TIMEOUT_S = 8;
 const STAGE_INSET = -0.1;
 const STAGE_SPOT: readonly [number, number] = [-16, 24];
 const GOAL_GAP_S = 0.7;
+/** The commander's line is said to the figure who spoke in the last this-many seconds. */
+const TALK_MEMORY_S = 40;
 const TAP_GUARD_MS = 250;
 
 /** Long enough to read: about 0.35 s a word, 2 s at least. */
@@ -203,7 +207,7 @@ export class StoryDirector {
     /** This run started at the level's `retryFrom`, so the cues of the walk there do not fire. */
     private readonly fromRetrySpot = false,
   ) {
-    this.world = { light: null, ghosts: [], dots: null, kioskLit: true, kioskRestore: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, actors: [], vehicles: [] };
+    this.world = { light: null, ghosts: [], dots: null, kioskLit: true, kioskRestore: null, ridge: null, flash: null, spirit: null, glow: null, follow: null, guideOff: !!level.noGuide, guideTo: null, speaking: false, talker: null, listener: null, actors: [], vehicles: [] };
     this.cueGuide = { off: !!level.noGuide, to: null };
     this.hidden = new Set(level.hide ?? []);
     this.settled = level.goals.map(() => "empty");
@@ -232,6 +236,8 @@ export class StoryDirector {
 
   /** A line is on screen (characters stand still while it is). */
   lineUp = false;
+  /** The last non-commander figure who spoke, and when (host clock ms): who the commander's next line is said to. */
+  private lastFigure: { who: string; at: number } | null = null;
 
   /** A camera beat (pausing or a nudge) is moving the camera now; for the review probe. */
   get cameraOn(): boolean { return this.active?.k === "camera" || !!this.nudge; }
@@ -509,9 +515,10 @@ export class StoryDirector {
         name: sp?.name ?? who ?? "", text: "line" in a ? a.line : a.crew, portrait: sp?.portrait, tag: "crew" in a ? a.tag ?? sp?.tag : undefined,
         tap: true, style: sp?.dialogue, bust: sp?.bust, who, ...("line" in a && a.head ? { head: a.head } : {}),
       });
-      this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null };
+      const listener = this.listenerOf(who, !!sp?.spirit);
+      this.world = { ...this.world, speaking: !!sp?.spirit, talker: who ?? null, listener };
       this.lineUp = true;
-      this.waitTap("line", () => { this.view.clearLine(); this.lineUp = false; this.world = { ...this.world, speaking: false, talker: null }; });
+      this.waitTap("line", () => { this.view.clearLine(); this.lineUp = false; this.world = { ...this.world, speaking: false, talker: null, listener: null }; });
     } else if ("inset" in a) {
       this.host.inset?.(a.inset);
     } else if ("wait" in a) {
@@ -717,6 +724,26 @@ export class StoryDirector {
 
   private castRef(who: string): StoryCastRef | null {
     return this.level.cast?.[who] ?? (who === "commander" ? { player: true } : null);
+  }
+
+  /**
+   * Who a line is said to (Doug 2026-11-25: all conversations have the two speakers facing each other). A figure on the map speaks to
+   * the commander; the commander speaks to the figure who spoke just before him (within TALK_MEMORY_S). A spirit, a voice with no
+   * figure (a building, a fixed spot) or a line to no one has no listener, so nobody turns.
+   */
+  private listenerOf(who: string | undefined, spirit: boolean): string | null {
+    if (spirit) { this.lastFigure = null; return null; }
+    if (who === undefined || !this.hasFigure(who)) return null;
+    const now = this.now();
+    if (who !== "commander") { this.lastFigure = { who, at: now }; return "commander"; }
+    const prev = this.lastFigure;
+    return prev && now - prev.at <= TALK_MEMORY_S * 1000 ? prev.who : null;
+  }
+
+  /** A cast member drawn as a figure that can turn (the commander, a person, a capture, the boss, a trader), not a building or a fixed spot. */
+  private hasFigure(who: string): boolean {
+    const c = this.castRef(who);
+    return !!c && ("player" in c || "capture" in c || "person" in c || "boss" in c || "customer" in c);
   }
 
   /** A rider with no sim customer (Sela once the level has ended) is drawn by the vehicle itself and faces the commander. */

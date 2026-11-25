@@ -7,7 +7,8 @@ import { traceStory, type TraceFailure } from "../src/story/trace.js";
 // r4 (Doug 2026-11-24): the story sequence trace plays Levels 1-5 headless through the real director and sim and fails on
 // (a) a world speaker off screen when their line shows, (b) anyone moving during a line, (c) play held > 4 s with
 // nothing to read, (d) an arrow at something done or hidden, (e) the level ending with closing cues still waiting or
-// the result card before the story queue is empty, (f) anything thrown. See packages/client/src/story/trace.ts.
+// the result card before the story queue is empty, (f) anything thrown, (g) a speaker, the commander or a buggy inside a built
+// building, (h) the two speakers of a line not facing each other. See packages/client/src/story/trace.ts.
 //
 // ALLOW: known failures, each with a written reason. Phase B lanes fix the level and DELETE the entry; nothing ships
 // until every "phase B" entry is gone. Match = level + check + cue + a piece of the message.
@@ -60,6 +61,16 @@ describe("the trace catches what it must", () => {
     const t = await traceStory("story-L001", manifest("story-L001"), { level });
     expect(t.failures.some((f) => f.check === "a" && f.message.includes("far speaks off screen"))).toBe(true);
     expect(t.failures.some((f) => f.check === "e" && f.message.includes("can never fire"))).toBe(true);
+  }, 180_000);
+
+  it("flags a commander who keeps facing his walk direction while Sela talks (h)", async () => {
+    // the old renderer: a speaker faces the way they last walked. Level 3's closing walks the commander south-west out of the hub
+    const t = await traceStory("story-L003", manifest("story-L003"), { faceTalk: false });
+    const h = t.failures.filter((f) => f.check === "h" && f.cue === "hubDone").map((f) => f.message);
+    expect(h.some((m) => m.includes("commander faces") && m.includes("off the sela") && m.includes("Congratulations"))).toBe(true);
+    // with the conversation facing modelled every level is clean (also asserted per level above)
+    const ok = await traceStory("story-L003", manifest("story-L003"));
+    expect(ok.failures.filter((f) => f.check === "h")).toEqual([]);
   }, 180_000);
 
   it("flags a long hold with nothing to read (c)", async () => {

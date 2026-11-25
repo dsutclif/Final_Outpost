@@ -149,6 +149,11 @@ export interface StoryPresentation {
   /** Where a mover is drawn now (ground units), or null for a key with nothing drawn. */
   actorAt(key: string): { x: number; z: number } | null;
   /**
+   * The two characters in a conversation, set every frame while a line is up (null otherwise): each is an interp key ("player",
+   * "r:<id>", "h:<id>", "ride:<customer>") with where they stand (ground units). While set, each turns in place toward the other.
+   */
+  converse(pair: { a: { key: string; x: number; z: number }; b: { key: string; x: number; z: number } } | null): void;
+  /**
    * The story's scene mode (client director.scene), set every frame: null while play runs. While set, every mover
    * stands in idle with no change of place (no walk cycle from the last tick) except the interp keys in `movers`,
    * and story vehicles pause unless `vehicles`.

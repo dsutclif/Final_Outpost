@@ -133,7 +133,24 @@ export class StoryStage {
     p.kioskLit = w.kioskLit;
     p.kioskRestore = w.kioskRestore;
     this.speaker(w, st, viewW, viewH);
+    this.converse(w, st);
     this.director.view.frame?.(now);
+  }
+
+  /** The line's talker and who it is said to turn toward each other while it is up (null: no one does). */
+  private converse(w: StoryWorld, st: State): void {
+    const pair = w.talker && w.listener ? [this.figure(w.talker, st), this.figure(w.listener, st)] : null;
+    this.present.converse(pair && pair[0] && pair[1] ? { a: pair[0], b: pair[1] } : null);
+  }
+
+  /** Where a cast figure is drawn, with the renderer key that turns it (a trader on a buggy or at the kiosk is "ride:<customer>"). */
+  private figure(who: string, st: State): { key: string; x: number; z: number } | null {
+    const cust = this.director.customerOf(who);
+    const key = this.director.castKey(who, st) ?? (cust !== null ? `ride:${cust}` : null);
+    if (!key) return null;
+    const drawn = this.present.actorAt(key);
+    const at = drawn ? { x: drawn.x, y: drawn.z } : this.director.castAt(who, st);
+    return at ? { key, x: at.x, z: at.y } : null;
   }
 
   /** Keep the line's bubble over the speaker's head: where the renderer draws them, else where the sim has them. */
