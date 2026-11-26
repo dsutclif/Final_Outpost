@@ -34,7 +34,7 @@ describe("guide text", () => {
   it("has skin text for every kind Brain.suggest can return", () => {
     const kinds = ["gather", "feed", "stock", "register", "pile", "pay", "tow", "gate", "barrier", "operate", "deposit", "fetch", "drop", "admit", "fight", "hunt"];
     for (const k of kinds) expect(skin.text.guide?.[k], k).toBeTruthy();
-    expect(guideText(skin, "gate")).toMatch(/gate/i);
+    expect(guideText(skin, "gate")).toMatch(/opening/i);
   });
 });
 
