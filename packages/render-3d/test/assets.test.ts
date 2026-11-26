@@ -118,3 +118,13 @@ describe("reactor beacon sits on the Meshy body (burn light floats above the rea
     }
   });
 });
+
+describe("reactor beacon lamp hides once a Meshy core is lit (white dot on the burn light)", () => {
+  it("Meshy body: visible while dormant, hidden when lit; code body: always visible", async () => {
+    const { beaconVisible } = await import("../src/renderer.js");
+    expect(beaconVisible(true, true)).toBe(true);
+    expect(beaconVisible(false, true)).toBe(false);
+    expect(beaconVisible(true, false)).toBe(true);
+    expect(beaconVisible(false, false)).toBe(true);
+  });
+});
