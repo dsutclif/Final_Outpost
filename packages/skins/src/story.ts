@@ -17,8 +17,8 @@ export type StoryTrigger =
   | { event: string; match?: Readonly<Record<string, string | number | boolean>>; count?: number; after?: string }
   /** An objective, by manifest objective id, became done or failed in the sim (even before its turn). */
   | { goal: string; is: "done" | "failed" }
-  /** The player came within `r` world units (once the cue `after` has fired, when given). */
-  | { near: StoryPlace; r: number; after?: string }
+  /** The player came within `r` world units (once the cue `after` has fired, when given); with `seen`, only while that place is also on screen, so a line that names it never plays before it can be seen. */
+  | { near: StoryPlace; r: number; after?: string; seen?: boolean }
   /** `ticks` sim ticks after the cue `after` fired (from tick 0 without it). Sim time, so freezes don't count. */
   | { after?: string; ticks: number }
   /**
@@ -226,8 +226,8 @@ export interface StoryGoal {
  * Who a cast key is on the map, for speech bubbles and walks: the hero, the crewmate out of a capture (manifest
  * capture order), the n-th starting resident (manifest `people` order), the boss, or a fixed place.
  */
-/** `customer`: the n-th trader to arrive (0 = the first), while at or walking to and from the kiosk. */
-export type StoryCastRef = { player: true } | { capture: number } | { person: number } | { boss: true } | { customer: number } | StoryPlace;
+/** `customer`: the n-th trader to arrive (0 = the first), while at or walking to and from the kiosk. `arrival`: the n-th recruit to come up the road to the gate (0 = the first). */
+export type StoryCastRef = { player: true } | { capture: number } | { person: number } | { arrival: number } | { boss: true } | { customer: number } | StoryPlace;
 
 export interface StoryLevel {
   goals: readonly StoryGoal[];

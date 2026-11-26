@@ -154,6 +154,31 @@ describe("characters passing through things", () => {
     expect(analyzeSample(sample({ things: [person("r:1", 100, 100), person("r:2", 140, 100)] }), L).filter((h) => h.check === "overlap")).toEqual([]);
   });
 
+  it("does not count a character meter over the warn sign at the same spot as two labels fighting", () => {
+    const lab = (key: string, x: number): { key: string; box: Box; depth: number; world: { x: number; y: number; z: number } } => ({ key, box: box(100, 100, 160, 120), depth: 500, world: { x, y: 30, z: 100 } });
+    const same = analyzeSample(sample({ labels: [lab("bar|#aaa|3", 100), lab("warn|!", 110)] }), L).filter((h) => h.check === "ui-overlap");
+    expect(same).toEqual([]);
+    const apart = analyzeSample(sample({ labels: [lab("bar|#aaa|3", 100), lab("warn|!", 300)] }), L).filter((h) => h.check === "ui-overlap");
+    expect(apart).toHaveLength(1);
+  });
+
+  it("lets a supplier stand at a converter it delivers to, but not walk through a press", () => {
+    const conv = thing({ id: "conv.food_processor", key: "cv:2", kind: "building", foot: { x0: 0, z0: 0, x1: 100, z1: 100 } });
+    const sup = (id: string): ThingSample => person("r:1", 50, 50, { id });
+    expect(analyzeSample(sample({ things: [conv, sup("role.supplier")] }), L).filter((h) => h.check === "overlap")).toEqual([]);
+    expect(analyzeSample(sample({ things: [conv, sup("role.idle")] }), L).filter((h) => h.check === "overlap")).toHaveLength(1);
+    const wall = thing({ id: "sink.core", key: "s:1", kind: "building", foot: { x0: 0, z0: 0, x1: 100, z1: 100 } });
+    expect(analyzeSample(sample({ things: [wall, sup("role.supplier")] }), L).filter((h) => h.check === "overlap")).toHaveLength(1);
+  });
+
+  it("lets two attackers crowd each other, but not an attacker and one of ours", () => {
+    const hostile = (key: string, id: string, x: number): ThingSample => person(key, x, 100, { id });
+    const pair = analyzeSample(sample({ things: [hostile("h:1", "hostile.raider_humanoid", 100), hostile("h:2", "hostile.swarmling", 101)] }), L).filter((h) => h.check === "overlap");
+    expect(pair).toEqual([]);
+    const mixed = analyzeSample(sample({ things: [hostile("h:1", "hostile.raider_humanoid", 100), person("r:1", 101, 100)] }), L).filter((h) => h.check === "overlap");
+    expect(mixed).toHaveLength(1);
+  });
+
   it("flags someone whose centre is inside a building, not at its edge", () => {
     const bld = thing({ id: "conv.press", key: "cv:1", kind: "building", foot: { x0: 0, z0: 0, x1: 100, z1: 100 } });
     const inside = analyzeSample(sample({ things: [bld, person("r:1", 50, 50)] }), L).filter((h) => h.check === "overlap");
@@ -492,6 +517,11 @@ describe("speaker on screen and cue audit", () => {
     expect(analyzeSpeakerSeen(sp(box(5000, 300, 5040, 400)), sample(), L)[0]).toMatchObject({ check: "line-speaker-offscreen", severity: 3 });
     expect(analyzeSpeakerSeen(sp(null, "strip"), sample(), L)[0]).toMatchObject({ severity: 1 });
     expect(analyzeSpeakerSeen({ ...sp(null), speaker: null }, sample(), L)).toEqual([]);
+  });
+  it("exempts kiln shown as a terminal card, but not other speakers on a terminal", () => {
+    const term = (speaker: string): CaptionSample => ({ sel: "x", style: "terminal", box: box(0, 0, 10, 10), text: "Hello there.", speaker, speakerBox: null, head: null });
+    expect(analyzeSpeakerSeen(term("kiln"), sample(), L)).toEqual([]);
+    expect(analyzeSpeakerSeen(term("rhee"), sample(), L)[0]).toMatchObject({ check: "line-speaker-offscreen", severity: 1 });
   });
   it("flags a requested guide arrow or edge glow that is not drawn", () => {
     const ok = { camera: false, glow: { set: true, offScreen: true, arrowWanted: true, shown: true, arrowShown: true }, guide: { to: { x: 1, y: 2 }, off: false, drawn: true, toOnScreen: false } };

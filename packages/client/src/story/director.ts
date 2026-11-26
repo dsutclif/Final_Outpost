@@ -473,7 +473,9 @@ export class StoryDirector {
     if (!("near" in on)) return false;
     if (on.after !== undefined && !this.firedAt.has(on.after)) return false;
     const p = this.place(on.near);
-    return !!p && (p.x - x) ** 2 + (p.y - y) ** 2 <= on.r * on.r;
+    if (!p || (p.x - x) ** 2 + (p.y - y) ** 2 > on.r * on.r) return false;
+    // `seen`: the place must be well inside the frame, whatever lag the camera has behind the hero
+    return !on.seen || !this.host.inFrame || this.host.inFrame(p, STAGE_INSET);
   }
 
   private place(p: StoryPlace): { x: number; y: number } | null {
@@ -773,6 +775,7 @@ export class StoryDirector {
     if ("player" in c) return "player";
     if ("capture" in c) { const r = this.fromCapture.get(c.capture); return r === undefined ? null : `r:${r}`; }
     if ("person" in c) { const r = st.residents.filter((x) => x.origin === "start").sort((a, b) => a.id - b.id)[c.person]; return r ? `r:${r.id}` : null; }
+    if ("arrival" in c) { const r = st.residents.filter((x) => x.origin === "gate").sort((a, b) => a.id - b.id)[c.arrival]; return r ? `r:${r.id}` : null; }
     if ("boss" in c) { const h = st.hostiles.find((x) => x.retreatHp !== undefined) ?? st.fleeing?.find((x) => x.retreatHp !== undefined); return h ? `h:${h.id}` : null; }
     return null;
   }
