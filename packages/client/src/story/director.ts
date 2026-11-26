@@ -136,6 +136,8 @@ const NO_SCENE: SceneMode = { on: false, why: null, movers: [], vehicles: true }
 const CARD_SECONDS = 3;
 /** A stage step gives up after this long (a blocked walk must not hang the level). */
 const STAGE_TIMEOUT_S = 8;
+/** The walker's clock: the renderer moves a figure at most this far per frame, so one long frame (a stalled tab, a slow phone, a headless browser between shots) must not burn the stage time out in a single step. */
+const STAGE_FRAME_CAP_S = 0.1;
 /** How far inside the frame (share of its size) a walking-in trader must stand before her line starts. */
 const STAGE_INSET = -0.1;
 const STAGE_SPOT: readonly [number, number] = [-16, 24];
@@ -148,7 +150,7 @@ const TAP_GUARD_MS = 250;
 export const lineSeconds = (text: string): number => Math.max(2, text.trim().split(/\s+/).length * 0.35);
 
 type Active =
-  | { k: "timed"; left: number; end: () => void; freezes: boolean; why: SceneWhy }
+  | { k: "timed"; left: number; end: () => void; freezes: boolean; why: SceneWhy; until?: StoryPlace }
   | { k: "wait"; freezes: boolean; why: SceneWhy }
   /** The stage step: waits for a cast member to be beside the commander (`key`) or, for one the story cannot walk, in frame. */
   | { k: "stage"; who: string; key: string | null; spot: StoryPlace | null; left: number; freezes: boolean; seen?: { x: number; y: number } }
@@ -160,6 +162,8 @@ export class StoryDirector {
   private tick = 0;
   private seq = 0;
   private nudge: CameraBeatPlayer | null = null;
+  /** The running nudge stands still while a line is up (its beat's `stay`). */
+  private nudgeStays = false;
   private started = false;
   private disposed = false;
   private readonly fired = new Set<StoryCue>();
@@ -244,6 +248,20 @@ export class StoryDirector {
 
   /** A camera beat (pausing or a nudge) is moving the camera now; for the review probe. */
   get cameraOn(): boolean { return this.active?.k === "camera" || !!this.nudge; }
+  /** A cast member is walking in for a line (a stage step or an `arrive` walk): the figure moves only on drawn frames; for the review probe. */
+  get staging(): boolean { return this.active?.k === "stage"; }
+  /** A cue waits only for its place to come on screen (the player is near, the frame test fails): the review probe's fast-forward then draws frames so the camera can show it. */
+  get seenPending(): boolean {
+    const st = this.st;
+    if (!st) return false;
+    if (this.active?.k === "timed" && this.active.until) return true;
+    const x = st.player.pos.x / FP, y = st.player.pos.y / FP;
+    return this.level.cues.some((c) => "near" in c.on && !!c.on.seen && this.armed(c) && this.playerNear({ ...c.on, seen: false }, x, y));
+  }
+  /** What holds the director, for a probe that finds nothing moving. */
+  stallInfo(): Record<string, unknown> {
+    return { active: this.active?.k ?? null, queue: this.queue.length, lineUp: this.lineUp, promptOpen: this.promptOpen, explicitFreeze: this.explicitFreeze, held: !!this.held, nudge: !!this.nudge };
+  }
 
   /** A line, card, film or camera beat is on: coach hints and marks stay quiet so they never talk over the story. */
   get busy(): boolean {
@@ -332,7 +350,7 @@ export class StoryDirector {
     const me = this.world.actors.some((x) => x.who === "commander") ? this.host.drawnAt?.("player") : null;
     this.lastAt.set("player", me ?? { x: st.player.pos.x / FP, y: st.player.pos.y / FP });
     this.followPlayer();
-    if (this.nudge?.step(dt)) this.nudge = null;
+    if (this.nudge?.step(this.nudgeStays && this.lineUp ? 0 : dt)) this.nudge = null;
     this.stepOpenZoom(dt, st);
     if (!this.started) {
       this.started = true;
@@ -341,6 +359,7 @@ export class StoryDirector {
     const a = this.active;
     if (a?.k === "timed") {
       a.left -= dt;
+      if (a.until && this.seenAt(a.until)) a.left = 0;
       if (a.left <= 0) { this.active = null; this.view.onTap(null); a.end(); }
     } else if (a?.k === "camera" && a.beat.step(dt)) this.active = null;
     else if (a?.k === "stage") {
@@ -349,7 +368,7 @@ export class StoryDirector {
       if (!this.lineUp && !this.promptOpen) {
         const at = a.key ? this.host.drawnAt?.(a.key) ?? null : null;
         if (at && (!a.seen || Math.abs(at.x - a.seen.x) + Math.abs(at.y - a.seen.y) > 0.5)) { a.seen = { x: at.x, y: at.y }; a.left = STAGE_TIMEOUT_S; }
-        else a.left -= dt;
+        else a.left -= Math.min(dt, STAGE_FRAME_CAP_S);
       }
       if (a.left <= 0 || this.staged(a, st)) this.active = null;
     }
@@ -475,6 +494,12 @@ export class StoryDirector {
     return list.some((h) => h.type === on.hostile && (h.pos.x / FP - c.x) ** 2 + (h.pos.y / FP - c.y) ** 2 <= on.r * on.r);
   }
 
+  /** The place is well inside the frame (true when it cannot be placed, or the host cannot tell). */
+  private seenAt(pl: StoryPlace): boolean {
+    const p = this.place(pl);
+    return !p || !this.host.inFrame || this.host.inFrame(p, STAGE_INSET);
+  }
+
   private playerNear(on: StoryTrigger, x: number, y: number): boolean {
     if (!("near" in on)) return false;
     if (on.after !== undefined && !this.firedAt.has(on.after)) return false;
@@ -534,6 +559,7 @@ export class StoryDirector {
       this.host.inset?.(a.inset);
     } else if ("wait" in a) {
       this.timed(a.wait, () => {});
+      if (a.seen && this.active?.k === "timed") this.active.until = a.seen;
     } else if ("vehicle" in a) {
       const path = a.path.flatMap((p) => { const q = this.place(p); return q ? [q] : []; });
       if (path.length) this.world = { ...this.world, vehicles: [...this.world.vehicles.filter((v) => v.id !== a.vehicle), { id: a.vehicle, path, seconds: a.seconds ?? 8, lights: a.lights !== false, seq: ++this.seq, ...(a.parked ? { parked: true } : {}), ...this.riderOf(a.rider), ...this.soloOf(a.rider) }] };
@@ -552,7 +578,7 @@ export class StoryDirector {
     } else if ("camera" in a) {
       const to = this.place(a.camera.to);
       // a nudge during play runs beside the lines; a beat that pauses play holds the queue
-      if (to && a.camera.freeze === false) { this.nudge?.stop(); this.nudge = new CameraBeatPlayer(this.host.cam, a.camera, to); }
+      if (to && a.camera.freeze === false) { this.nudge?.stop(); this.nudge = new CameraBeatPlayer(this.host.cam, a.camera, to); this.nudgeStays = !!a.camera.stay; }
       else if (to) this.active = { k: "camera", beat: new CameraBeatPlayer(this.host.cam, a.camera, to), freezes: true };
     } else if ("freeze" in a) {
       this.explicitFreeze = a.freeze;

@@ -76,8 +76,19 @@ describe("the stage step", () => {
     });
     h.d.update(16, state());
     expect(h.log.some((l) => l.startsWith("line:"))).toBe(false);
-    for (let i = 0; i < 10; i++) h.d.update(1000, state());
+    for (let i = 0; i < 100; i++) h.d.update(1000, state());
     expect(h.log).toContain("line:okafor:late");
+    vi.useRealTimers();
+  });
+
+  it("does not time out on one long frame: the walker only moves 0.1 s a frame", () => {
+    vi.useFakeTimers();
+    const h = harness({ goals: [], cast, cues: [{ on: { start: true }, do: [{ stage: "okafor" }, { line: "late", who: "okafor" }] }] }, {
+      inFrame: () => false, drawnAt: () => ({ x: 900, y: 900 }), entryFrom: () => null,
+    });
+    h.d.update(16, state());
+    h.d.update(30000, state());
+    expect(h.log.some((l) => l.startsWith("line:"))).toBe(false);
     vi.useRealTimers();
   });
 
@@ -92,6 +103,21 @@ describe("the stage step", () => {
     on = true;
     h.d.update(16, st);
     expect(h.log).toContain("line:sela:I'm Sela");
+    vi.useRealTimers();
+  });
+
+  it("a camera nudge with `stay` holds its place while a line is up, and finishes after the line is read", () => {
+    vi.useFakeTimers();
+    const lvl: StoryLevel = { goals: [], cast, cues: [{ on: { start: true }, do: [{ camera: { to: { at: [100, 0] }, pan: 0.1, hold: 0.2, back: 0.1, freeze: false, stay: true } }, { line: "Look", who: "sela" }] }] };
+    const h = harness(lvl, { entityAt: () => null });
+    h.d.update(16, state());
+    expect(h.log).toContain("line:sela:Look");
+    h.d.update(5000, state());
+    expect(h.host.cam.follow).toBe(false);
+    expect(Math.round(h.host.cam.x)).toBeLessThan(100);
+    h.tap();
+    for (let i = 0; i < 30; i++) h.d.update(100, state());
+    expect(h.host.cam.follow).toBe(true);
     vi.useRealTimers();
   });
 

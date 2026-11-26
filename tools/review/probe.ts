@@ -552,7 +552,7 @@ async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: st
     if (r.seq !== seq) {
       seq = r.seq;
       const tm: Record<string, number> = {}; let tk = Date.now(); const lap = (k: string): void => { const n = Date.now(); tm[k] = n - tk; tk = n; };
-      await page.evaluate(() => window.R.settle(3)); lap("settle");
+      await page.evaluate(() => window.R.settle(24)); lap("settle"); // 0.8 s of drawn frames: a camera that just came back from a beat (made-up clock, nothing drawn) needs them to be over the hero again
       await page.waitForTimeout(450); // the bubble's own fade-in; a slow software-GL compositor stretches it, so wait for it to finish
       await page.waitForFunction(() => { const e = document.querySelector<HTMLElement>(".sdlg-bubble:not([hidden]), .sdlg-strip:not([hidden]), .sdlg-term:not([hidden])"); return !e || Number.parseFloat(getComputedStyle(e).opacity) >= 0.95; }, null, { timeout: 6000 }).catch(() => undefined);
       lap("fade");
@@ -624,7 +624,7 @@ async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: st
     if (frozenFor >= 1) await page.waitForTimeout(1000);
     // a film, stage or camera hold runs on the wall clock and a software renderer can take minutes over one, so it gets more patience than a stuck level
     const held = frozenFor >= 20 ? await page.evaluate(() => window.R.scene()) : null;
-    if (frozenFor >= (r.over ? (held?.on && held.why !== "line" && held.why !== "prompt" ? 400 : 20) : held?.on && held.why !== "line" && held.why !== "prompt" ? 400 : 120)) { extras["frozenShot"] = await shots.take("frozen", true); extras["stoppedFrozen"] = { tick: r.tick, seq: r.seq, over: r.over, dom: await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[class]")).filter((e) => e.offsetParent !== null && /cine|story|sdlg|result|card/.test(e.className.toString())).map((e) => e.className.toString()).slice(0, 12)), text: await page.evaluate(() => (document.querySelector<HTMLElement>(".app")?.innerText ?? "").replace(/s+/g, " ").slice(0, 300)), lines: lineNo, scene: await page.evaluate(() => window.R.scene()), state: await page.evaluate(() => { const s = window.R.state(); return s ? { tick: s.tick, hp: s.player.hp, hostiles: s.hostiles } : null; }) }; break; } // nothing moves: the story waits on something the bot cannot give
+    if (frozenFor >= (r.over ? (held?.on && held.why !== "line" && held.why !== "prompt" ? 400 : 20) : held?.on && held.why !== "line" && held.why !== "prompt" ? 400 : 120)) { extras["frozenShot"] = await shots.take("frozen", true); extras["stoppedFrozen"] = { tick: r.tick, seq: r.seq, over: r.over, dom: await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[class]")).filter((e) => e.offsetParent !== null && /cine|story|sdlg|result|card/.test(e.className.toString())).map((e) => e.className.toString()).slice(0, 12)), text: await page.evaluate(() => (document.querySelector<HTMLElement>(".app")?.innerText ?? "").replace(/s+/g, " ").slice(0, 300)), lines: lineNo, stall: await page.evaluate(() => window.R.stall()), scene: await page.evaluate(() => window.R.scene()), state: await page.evaluate(() => { const s = window.R.state(); return s ? { tick: s.tick, hp: s.player.hp, hostiles: s.hostiles } : null; }) }; break; } // nothing moves: the story waits on something the bot cannot give
     // the rest of the screen is held to the same rules every few seconds of the story
     if (r.tick / TPS >= nextSample) {
       nextSample = r.tick / TPS + 5;
