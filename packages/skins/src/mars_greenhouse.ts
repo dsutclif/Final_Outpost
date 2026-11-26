@@ -1039,11 +1039,12 @@ export const marsGreenhouse: Skin = {
           { on: { goal: "pair", is: "done" }, ordered: true, do: [
             // the lander pod lights (manifest hiddenUntil: pair): the camera looks out to it and stays there while KILN names it,
             // so the line comes up with the pod on screen (a nudge runs beside the line; a frozen beat would hand back first)
-            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 6, back: 0.7, freeze: false } },
-            { wait: 1.4 },
+            { camera: { to: { entity: "pod_old" }, pan: 0.8, hold: 6, back: 0.7, freeze: false, stay: true } },
+            // hold the line until the pod is actually in frame (6 s time-out so it cannot hang)
+            { wait: 6, seen: { entity: "pod_old" } },
             { line: "One more out there. A fifth pod. It's ours, the lander's escape pod, but nobody was assigned to it.", who: "kiln" },
-            // the camera is back on the commander before he speaks (outpost-ops#353): pan 0.8 + hold 6 + back 0.7 ends inside this wait
-            { wait: 6 },
+            // the camera is back on the commander before he speaks (outpost-ops#353): pan 0.8 + hold 6 + back 0.7 (the move stands still while the KILN line is up, so it ends a line's reading later) ends inside this wait
+            { wait: 7 },
             { line: "Then I'll bring in all five.", who: "commander" },
             { goal: "main" },
           ] },

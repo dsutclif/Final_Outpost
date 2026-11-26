@@ -48,6 +48,8 @@ export interface StoryCameraBeat {
   zoom?: number;
   /** Pause the sim during the beat. Default true; false for a nudge during play. */
   freeze?: boolean;
+  /** A nudge stands still while a line is up, so the view a line names is still on screen when the player reads it (a stalled frame cannot play the rest of the move). Default false. */
+  stay?: boolean;
 }
 
 /** The HUD parts a level can hide. Goals have their own display and are not listed. */
@@ -96,8 +98,8 @@ export type StoryAction =
   | { kneel: true }
   /** A live scene in a small frame over play; the queue carries on beside it (lines keep coming). */
   | { inset: string }
-  /** Beat: wait this many seconds (play carries on), e.g. for an inset to reach its moment. */
-  | { wait: number }
+  /** Beat: wait this many seconds (play carries on), e.g. for an inset to reach its moment. With `seen`, the wait ends early as soon as that place is on screen and the seconds are only the time-out, so a line after it never names what the player cannot see (and it cannot hang). */
+  | { wait: number; seen?: StoryPlace }
   /** Show a goal whose StoryGoal has `hold`. */
   | { goal: string }
   | { hide: readonly StoryHudPart[] }

@@ -106,6 +106,21 @@ describe("the stage step", () => {
     vi.useRealTimers();
   });
 
+  it("a camera nudge with `stay` holds its place while a line is up, and finishes after the line is read", () => {
+    vi.useFakeTimers();
+    const lvl: StoryLevel = { goals: [], cast, cues: [{ on: { start: true }, do: [{ camera: { to: { at: [100, 0] }, pan: 0.1, hold: 0.2, back: 0.1, freeze: false, stay: true } }, { line: "Look", who: "sela" }] }] };
+    const h = harness(lvl, { entityAt: () => null });
+    h.d.update(16, state());
+    expect(h.log).toContain("line:sela:Look");
+    h.d.update(5000, state());
+    expect(h.host.cam.follow).toBe(false);
+    expect(Math.round(h.host.cam.x)).toBeLessThan(100);
+    h.tap();
+    for (let i = 0; i < 30; i++) h.d.update(100, state());
+    expect(h.host.cam.follow).toBe(true);
+    vi.useRealTimers();
+  });
+
   it("stages an off-screen speaker before their line when the level asks for it (autoStage), and leaves others alone", () => {
     vi.useFakeTimers();
     const lvl = (autoStage: boolean): StoryLevel => ({ goals: [], cast, autoStage, cues: [{ on: { start: true }, do: [{ line: "from afar", who: "okafor" }] }] });
