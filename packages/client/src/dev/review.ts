@@ -198,7 +198,7 @@ export function installReview(app: App): void {
 
   /** Pods in tow or opening bob above the ground on purpose (renderer syncCaptures): their base is allowed that high. */
   const deliberateLift = (key: string, ruleY: number, st: State): number => {
-    const m = /^cap:(d+)$/.exec(key);
+    const m = /^cap:(\d+)$/.exec(key);
     const c = m ? st.captures.find((x) => x.id === Number(m[1])) : undefined;
     return c && (c.state === "towed" || c.state === "releasing") ? Math.max(ruleY, 5) : ruleY;
   };
@@ -229,16 +229,21 @@ export function installReview(app: App): void {
 
   /** The line on screen and who says it: the bubble's box, the speaker's box and head point. */
   const caption = (v: NonNullable<typeof app.debugView>, st: State, things: ThingSample[], o: { x: number; y: number }): CaptionSample | null => {
-    const el = [...doc.querySelectorAll<HTMLElement>(CAPTION_SEL)].find((e) => !e.hidden && getComputedStyle(e).display !== "none");
+    const el = [...doc.querySelectorAll<HTMLElement>(CAPTION_SEL)].find((e) => !e.hidden && getComputedStyle(e).display !== "none" && e.style.visibility !== "hidden");
     if (!el) return null;
     const style = el.classList.contains("sdlg-bubble") ? "bubble" : el.classList.contains("sdlg-strip") ? "strip" : el.classList.contains("sdlg-term") ? "terminal" : "other";
     const talker = v.director?.world.talker ?? null;
     let head: { x: number; y: number } | null = null, feet: { x: number; y: number } | null = null;
     if (talker && v.director) {
-      const key = v.director.castKey(talker, st);
+      const cust = v.director.customerOf(talker);
+      // a trader in her buggy is drawn as "ride:<id>"; the bubble sits on that figure, so measure the same one
+      const key = v.director.castKey(talker, st) ?? (cust !== null ? `ride:${cust}` : null);
       const speaker = key ? things.find((t) => t.key === key) ?? null : null;
       head = speaker?.head ?? null;
       feet = speaker?.feet ?? null;
+      // the drawn figure the bubble itself is anchored on (a thing's own head can be a crash-scene bounding box)
+      const real = key ? v.renderer.characterHead(key) : null;
+      if (real && Number.isFinite(real.x) && Number.isFinite(real.y)) { head = { x: real.x + o.x, y: real.y + o.y }; feet = { x: real.x + o.x, y: real.feetY + o.y }; }
       if (!head || !feet) {
         // not drawn by the renderer's characters (a crowd figure, or off the map): where the sim has them, at a person's height
         const at = v.director.castAt(talker, st);

@@ -1053,7 +1053,7 @@ export const marsGreenhouse: Skin = {
           ] },
           // the scorched pod in the heat, still there while the lines play (they pause the sim); Rhee walks over to it
           { on: { event: "pod_home", match: { decoy: true } }, ordered: true, do: [
-            { walk: "rhee", to: { last: "pod_home" } },
+            { walk: "rhee", to: { last: "pod_home" }, arrive: true },
             { line: "Who was in this?", who: "commander" },
             { line: "My logs record the launch. It was flown down manually, no auto-release. Nobody was assigned to it.", who: "kiln" },
             { line: "Opened from the inside. The hatch is packed with dust. Whoever rode it down walked away, a while back.", who: "rhee" },
@@ -1321,6 +1321,8 @@ export const marsGreenhouse: Skin = {
         // manifest people order: Pip, Rhee, Okafor, Tam, then Sela's two drivers. Sela is a standing rider (customer id 99, never a real
         // trader) so the level's first real buyer is not drawn as her
         customerModels: { 99: "unit.customer_sela" },
+        // a crew member who is off screen walks in beside the commander before their line (as in levels 2 and 3)
+        autoStage: true,
         cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, sela: { customer: 99 } },
         goals: [
           { id: "arrive", hold: true, label: "Let the newcomers in" },
@@ -1342,7 +1344,7 @@ export const marsGreenhouse: Skin = {
           { on: { start: true }, ordered: true, do: [
             { vehicle: "buggy", path: [{ at: [1000, 865] }, { at: [880, 825] }, { at: [795, 805] }], seconds: 2.2, lights: true, rider: "sela", parked: true },
             // Rhee stands beside the commander before she speaks (Doug: she is on screen for her lines)
-            { walk: "rhee", to: { at: [630, 790] } },
+            { walk: "rhee", to: { at: [630, 790] }, arrive: true },
             { line: "KILN. Is it true? Eleven years?", who: "commander" },
             { spirit: "fading" },
             // KILN's basis for the new date: the stars and Sela's clock (Doug, 2026-11-04)
