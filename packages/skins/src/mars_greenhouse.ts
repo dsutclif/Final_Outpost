@@ -1440,7 +1440,7 @@ export const marsGreenhouse: Skin = {
         goalCards: true,
         // manifest people order: Pip, Rhee, Okafor, Tam, the cook, the runner and the clerk (level 4's town, at its posts all
         // level), then the two settlers who come in at the gate
-        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, settler: { at: [325, 1120] }, lieutenant: { boss: true } },
+        cast: { pip: { person: 0 }, rhee: { person: 1 }, okafor: { person: 2 }, tam: { person: 3 }, settler: { arrival: 0 }, lieutenant: { boss: true } },
         // after the fall scene the warlord runs off in play as Vale, helmet off, and the helmet lies where it fell (#6)
         fleeingModels: { "hostile.boss": "hostile.boss_vale" },
         showDropped: true,
@@ -1491,8 +1491,8 @@ export const marsGreenhouse: Skin = {
           // they appear only once the turret is built and no raider is alive (arrivals.after in the manifest), so the line
           // plays when they do, not on a timer a slow player could outrun
           { on: { event: "gate_arrival" }, ordered: true, do: [
-            // the camera shows them on the road below the gate, asking to be let in (Doug, 2026-11-22); they spawn about 170 below the gate, so centre below it (outpost-ops#340; gate moved with the kiosk, r3-kiosk)
-            { camera: { to: { at: [325, 1120] }, zoom: 0.72, pan: 0.8, hold: 6, back: 0.8, freeze: false } },
+            // the camera shows them on the road below the gate, asking to be let in (Doug, 2026-11-22); they spawn at the road end about 380 below the gate (x 490, y 1110) and walk up it, so centre on the road where they are when the line plays; the speaker is the first settler himself (cast arrival 0), not a point (outpost-ops#340)
+            { camera: { to: { at: [480, 1070] }, zoom: 0.72, pan: 0.8, hold: 6, back: 0.8, freeze: false } },
             { wait: 1 },
             { line: "Let us in! They burned our camp on the road!", who: "settler" },
             { line: "Two at the gate. Stand by it to let them in.", who: "kiln" },
@@ -1505,7 +1505,7 @@ export const marsGreenhouse: Skin = {
             { dots: [{ entity: "train" }], period: 2 },
             { line: "Good. Train one as a guard to hold the gate with me.", who: "okafor" },
           ] },
-          { id: "trainHired", on: { event: "hired", match: { pad: "train" } }, do: [
+          { id: "trainHired", on: { event: "hired", match: { pad: "train" } }, unless: "fall", do: [
             { dotsOff: true },
             { line: "Hold them off until sunrise.", who: "kiln" },
             { guide: true, to: { at: [760, 727] } },
@@ -1517,7 +1517,7 @@ export const marsGreenhouse: Skin = {
           { on: { start: true }, do: [{ light: "ember", seconds: 200 }] },
           // the first dust mites up out of the sand, measured from the east side of the base, wide enough to cover the whole east edge (not the player, who may be at the
           // far pad: a nearby kill never let the line play), as they come in among the raiders
-          { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, ordered: true, do: [{ stage: "okafor", by: [-30, -190] }, { line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
+          { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, ordered: true, do: [{ stage: "okafor", by: [-15, -100] }, { line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
           // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
           { on: { hostile: "hostile.boss", r: 330 }, ordered: true, do: [{ stage: "lieutenant" }, { line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
@@ -1539,7 +1539,7 @@ export const marsGreenhouse: Skin = {
           ] },
           // KILN points at the helmet only once the commander is close enough to have it on screen (within 100 of it, the phone view
           // shows everything within 150), wherever the player stood when the warlord fell (outpost-ops#387)
-          { on: { near: { entity: "helmet" }, r: 100, after: "retreat" }, do: [
+          { on: { near: { entity: "helmet" }, r: 100, after: "retreat", seen: true }, do: [
             { line: "They dropped something.", who: "kiln" },
           ] },
           // picked up before those lines came (the commander was already standing at the fall spot): they play now, ahead of

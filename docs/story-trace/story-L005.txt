@@ -35,9 +35,9 @@
   1172     61.0  #3               objective   turret done
   1172     61.0  #3               arrow       off
   1262     64.0  #4               cue         event=gate_arrival
-  1262     64.0  #4               camera      {"to":{"at":[325,1120]},"zoom":0.72,"pan":0.8,"hold":6,"back":0.8,"freeze":false}
+  1262     64.0  #4               camera      {"to":{"at":[480,1070]},"zoom":0.72,"pan":0.8,"hold":6,"back":0.8,"freeze":false}
   1262     64.0  #4               wait        1
-  1291     65.0  #4               line        settler: Let us in! They burned our camp on the road! [at 325,1120 0 from centre, in frame; cmdr 469,859]
+  1291     65.0  #4               line        settler: Let us in! They burned our camp on the road! [at 464,1050 26 from centre, in frame; cmdr 469,859]
   1291     67.0  #4               line        kiln: Two at the gate. Stand by it to let them in.
   1291     69.1  #4               goal        arrive
   1291     69.1  #4               guide_cue   true {"entity":"gate"}
@@ -49,55 +49,51 @@
   1480     75.3  trainOpen        arrow       off
   1800     88.0  #8               cue         hostile=hostile.swarmling r=800 at={"at":[1000,800]}
   1800     88.0  #8               stage       okafor
-  1800     89.4  #8               line        okafor: Dust mites! The noise is bringing them up out of the sand. [at 204,952 148 from centre, in frame; cmdr 233,1149]
-  1800     89.4  #8               held        1.4 s (stage)
-  2961    130.1  #16              cue         near={"entity":"helmet"} r=50
-  2961    130.1  #16              dotsOff     
-  4564    183.6  #16              arrow       story@555,840
-  4602    184.9  #16              arrow       off
-  4603    184.9  #16              arrow       story@555,840
-  4871    193.8  #9               cue         hostile=hostile.boss r=330
-  4871    193.8  #9               stage       lieutenant
-  4871    193.8  #9               arrow       off
-  4871    196.6  #9               line        lieutenant: You should have stayed asleep, Commander. [at 533,749 47 from centre, in frame; cmdr 542,726]
-  4871    196.6  #9               held        2.8 s (stage)
-  4871    198.6  #9               arrow       story@555,840
-  4917    200.2  fall             cue         event=retreated
-  4917    200.2  fall             fall        hostile.boss
-  4917    200.2  dawn             cue         goal=hold is=done
-  4917    200.2  dawn             guide_cue   true {"entity":"helmet"}
-  4917    200.2  dawn             objective   hold done
-  4917    200.2  dawn             arrow       off
-  4917    206.2  dawn             arrow       story@867,734
-  5012    209.3  retreat          cue         after=fall ticks=95
-  5012    209.3  retreat          ridge       
-  5012    209.3  retreat          guide_cue   true {"entity":"helmet"}
-  5012    209.3  retreat          dots        
-  5012    209.3  retreat          line        kiln: They're running. It's over for tonight.
-  5012    209.3  retreat          arrow       off
-  5012    211.3  retreat          line        kiln: But the signal hasn't stopped. That was never them.
-  5012    213.3  retreat          arrow       story@867,734
-  5067    215.1  #15              cue         after=dawn ticks=150
-  5067    215.1  #15              dots        
-  5107    216.5  #12              cue         near={"entity":"helmet"} r=100 after=retreat
-  5107    216.5  #12              line        kiln: They dropped something.
-  5107    216.5  #12              arrow       off
-  5107    218.5  #12              arrow       story@867,734
-  5123    219.0  #17              cue         event=captured
-  5123    219.0  #17              dotsOff     
-  5123    219.0  #17              kneel       
-  5123    219.0  #17              objective   main done
-  5123    219.0  #17              arrow       off
-  5123    225.0  #17              film        helmet_reveal
-  5123    231.0  #17              line        commander: Vale? [at 855,740 67 from centre, in frame; cmdr 855,740]
-  5123    233.0  #17              light       
-  5123    233.0  #17              wait        4.5
-  5123    233.0  #17              arrow       story@867,734
-  5209    235.8  trainHired       cue         event=hired match={"pad":"train"}
-  5209    235.8  trainHired       dotsOff     
-  5209    235.8  trainHired       guide_cue   true {"at":[760,727]}
-  5209    235.8  trainHired       objective   train done
-  5209    235.8  trainHired       level_end   won (goal)
-  5209    237.3  trainHired       result_held the result waits for the story queue
-  5209    237.5  trainHired       line        kiln: Hold them off until sunrise.
-  5209    239.5  trainHired       result      shown
+  1800     90.4  #8               line        okafor: Dust mites! The noise is bringing them up out of the sand. [at 219,1042 64 from centre, in frame; cmdr 233,1149]
+  1800     90.4  #8               held        2.4 s (stage)
+  2961    131.1  #16              cue         near={"entity":"helmet"} r=50
+  2961    131.1  #16              dotsOff     
+  4564    184.6  #16              arrow       story@555,840
+  4602    185.9  #16              arrow       off
+  4603    185.9  #16              arrow       story@555,840
+  4871    194.8  #9               cue         hostile=hostile.boss r=330
+  4871    194.8  #9               stage       lieutenant
+  4871    194.8  #9               arrow       off
+  4871    197.6  #9               line        lieutenant: You should have stayed asleep, Commander. [at 533,749 47 from centre, in frame; cmdr 542,726]
+  4871    197.6  #9               held        2.8 s (stage)
+  4871    199.6  #9               arrow       story@555,840
+  4917    201.2  fall             cue         event=retreated
+  4917    201.2  fall             fall        hostile.boss
+  4917    201.2  dawn             cue         goal=hold is=done
+  4917    201.2  dawn             guide_cue   true {"entity":"helmet"}
+  4917    201.2  dawn             objective   hold done
+  4917    201.2  dawn             arrow       off
+  4917    207.2  dawn             arrow       story@867,734
+  5012    210.3  retreat          cue         after=fall ticks=95
+  5012    210.3  retreat          ridge       
+  5012    210.3  retreat          guide_cue   true {"entity":"helmet"}
+  5012    210.3  retreat          dots        
+  5012    210.3  retreat          line        kiln: They're running. It's over for tonight.
+  5012    210.3  retreat          arrow       off
+  5012    212.3  retreat          line        kiln: But the signal hasn't stopped. That was never them.
+  5012    214.3  retreat          arrow       story@867,734
+  5067    216.1  #15              cue         after=dawn ticks=150
+  5067    216.1  #15              dots        
+  5109    217.5  #12              cue         near={"entity":"helmet"} r=100 after=retreat seen=true
+  5109    217.5  #12              line        kiln: They dropped something.
+  5109    217.5  #12              arrow       off
+  5109    219.5  #12              arrow       story@867,734
+  5123    220.0  #17              cue         event=captured
+  5123    220.0  #17              dotsOff     
+  5123    220.0  #17              kneel       
+  5123    220.0  #17              objective   main done
+  5123    220.0  #17              arrow       off
+  5123    226.0  #17              film        helmet_reveal
+  5123    232.0  #17              line        commander: Vale? [at 855,740 67 from centre, in frame; cmdr 855,740]
+  5123    234.0  #17              light       
+  5123    234.0  #17              wait        4.5
+  5123    234.0  #17              arrow       story@867,734
+  5209    236.8  #17              objective   train done
+  5209    236.8  #17              level_end   won (goal)
+  5209    238.3  #17              result_held the result waits for the story queue
+  5209    238.5  #17              result      shown
