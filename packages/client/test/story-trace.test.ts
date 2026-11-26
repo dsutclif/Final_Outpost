@@ -18,6 +18,9 @@ const ALLOW: readonly { level: string; check: TraceFailure["check"]; cue: string
   // Doug 2026-11-25: Sela is parked at exactly her level 3 end spot from the first frame (no drive-in). From the commander's start the buggy sits
   // near the right edge of a 390 px phone (her figure and her lines are in frame); the trace models it as a drive-in, so it is allowed here.
   { level: "story-L004", check: "a", cue: "#1", has: "parks at 795,805", why: "Sela stands at her level 3 spot from the start (Doug)" },
+  // Rhee used to speak from off screen here (the walk-in did not run while a line was up); now the director waits for her to walk in, so the hub
+  // glance and her walk are one 4.7 s held stretch. Both are real beats: the hub is shown, then she arrives beside the commander.
+  { level: "story-L003", check: "c", cue: "wallDone", has: "play held", why: "Rhee now really walks in (lane E1), after the hub glance" },
 ];
 
 const manifest = (id: string): unknown => JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "levels", "story", `${id}.json`), "utf8"));

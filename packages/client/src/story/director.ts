@@ -151,7 +151,7 @@ type Active =
   | { k: "timed"; left: number; end: () => void; freezes: boolean; why: SceneWhy }
   | { k: "wait"; freezes: boolean; why: SceneWhy }
   /** The stage step: waits for a cast member to be beside the commander (`key`) or, for one the story cannot walk, in frame. */
-  | { k: "stage"; who: string; key: string | null; spot: StoryPlace | null; left: number; freezes: boolean }
+  | { k: "stage"; who: string; key: string | null; spot: StoryPlace | null; left: number; freezes: boolean; seen?: { x: number; y: number } }
   | { k: "camera"; beat: CameraBeatPlayer; freezes: boolean };
 
 export class StoryDirector {
@@ -344,7 +344,13 @@ export class StoryDirector {
       if (a.left <= 0) { this.active = null; this.view.onTap(null); a.end(); }
     } else if (a?.k === "camera" && a.beat.step(dt)) this.active = null;
     else if (a?.k === "stage") {
-      a.left -= dt;
+      // the walker only moves while no line or prompt is up, and a slow frame or a renderer that skips frames walks it slower than the
+      // clock runs: the time out counts only a stall, so a figure that keeps moving (drawn spot changed) is given the whole time again
+      if (!this.lineUp && !this.promptOpen) {
+        const at = a.key ? this.host.drawnAt?.(a.key) ?? null : null;
+        if (at && (!a.seen || Math.abs(at.x - a.seen.x) + Math.abs(at.y - a.seen.y) > 0.5)) { a.seen = { x: at.x, y: at.y }; a.left = STAGE_TIMEOUT_S; }
+        else a.left -= dt;
+      }
       if (a.left <= 0 || this.staged(a, st)) this.active = null;
     }
     this.stepGuideRules(st);
@@ -664,7 +670,7 @@ export class StoryDirector {
     // a figure already walked in (or standing) on screen is staged; only where they are DRAWN counts, the sim keeps them elsewhere
     const key = this.castKey(who, st), drawn = key ? this.host.drawnAt?.(key) ?? null : null;
     const at = drawn ?? this.castAt(who, st);
-    return !!at && !this.host.inFrame(at);
+    return !!at && !this.host.inFrame(at, STAGE_INSET);
   }
 
   /** Walk `who` in beside the commander and hold the queue until they have arrived (or, for a trader, are in frame). */
@@ -696,7 +702,8 @@ export class StoryDirector {
     }
     if (!this.host.drawnAt) return true;
     const at = this.host.drawnAt(a.key), to = this.place(a.spot);
-    return !at || !to || (at.x - to.x) ** 2 + (at.y - to.y) ** 2 <= 8 * 8;
+    // a figure the renderer has not drawn yet (just released from its pod) is not there yet: wait for it, the time out ends a stall
+    return !to || (!!at && (at.x - to.x) ** 2 + (at.y - to.y) ** 2 <= 8 * 8);
   }
 
   private cond(c: StoryCond, st: State): boolean {

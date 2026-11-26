@@ -139,11 +139,14 @@ function bubbleDialogue(layer: HTMLElement): DialogueStyle {
       root.classList.add("in");
       // the very first line has no place yet: low on the screen, as for a speaker off the map, until its own frame anchors it
       if (last) this.anchor?.(last.p, last.vw, last.vh); else root.classList.add("free");
+      // not drawn until its own frame has anchored it over the speaker: a bubble at the last spot (or low on the screen) for one frame sits on the wrong face
+      root.style.visibility = "hidden";
     },
     clear() { root.hidden = true; },
     anchor(p, vw, vh) {
       last = { p, vw, vh };
       if (root.hidden) return;
+      root.style.visibility = "";
       root.classList.toggle("free", !p);
       if (!p) { root.style.left = root.style.top = ""; return; }
       const w = root.offsetWidth, h = root.offsetHeight;
