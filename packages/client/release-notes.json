@@ -1,1 +1,1 @@
-{"notes":["Levels 2-5: story characters now reliably walk into frame before they speak.","Level 2: the pod line now waits until the pod is on screen.","Labels near the edge of the screen now slide back inside.","Level 5: the helmet line now waits for the helmet."]}
+{"notes":["Level 5: the helmet can't be picked up until KILN says they dropped something, even if you are standing on it.","Level 5: the dropped helmet now glints so it is easy to see at night."]}

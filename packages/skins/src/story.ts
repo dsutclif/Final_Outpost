@@ -116,6 +116,8 @@ export type StoryAction =
   /** Small pulsing lights on the ground, replacing any before; `period` seconds a beat. */
   | { dots: readonly StoryPlace[]; period?: number }
   | { dotsOff: true }
+  /** Hold a pickup capture back (true) or let it be taken (false): while held, standing on it does nothing. Level 5's helmet waits for KILN's line about it. */
+  | { pickupHold: boolean }
   /** The kiosk's clerk-pad coin, shelf crates, count chips and coin pile draw only while lit (default lit); false keeps it dark until a cue lights it. */
   | { kioskLit: boolean }
   /** Story kiosk: cross-fade the ruined model (params kiosk.aged) into the ordinary kiosk over this many seconds, then keep it for the level. */

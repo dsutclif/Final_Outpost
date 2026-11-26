@@ -131,7 +131,7 @@ export interface SceneMode {
 }
 
 const isBeat = (a: QueueItem): boolean => "camera" in a || "film" in a || "fall" in a || "kneel" in a || "wait" in a || "card" in a || "day" in a || "stage" in a || "freeze" in a || ("tap" in a && !("line" in a));
-const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "kioskLit" in a || "kioskRestore" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
+const isWorld = (a: StoryAction): boolean => "inset" in a || "walk" in a || "light" in a || "dots" in a || "dotsOff" in a || "pickupHold" in a || "kioskLit" in a || "kioskRestore" in a || "ridge" in a || "ridgeFlash" in a || "spirit" in a || "spiritFollow" in a || "edgeGlow" in a || "guide" in a || "goal" in a || "ghost" in a || "ghostOff" in a || "vehicle" in a || "vehicleOff" in a;
 const NO_SCENE: SceneMode = { on: false, why: null, movers: [], vehicles: true };
 const CARD_SECONDS = 3;
 /** A stage step gives up after this long (a blocked walk must not hang the level). */
@@ -627,6 +627,8 @@ export class StoryDirector {
       this.world = { ...this.world, kioskRestore: a.kioskRestore };
     } else if ("kioskLit" in a) {
       this.world = { ...this.world, kioskLit: a.kioskLit };
+    } else if ("pickupHold" in a) {
+      if (this.st) for (const c of this.st.captures) if (c.pickup) { if (a.pickupHold) c.hold = true; else delete c.hold; }
     } else if ("dotsOff" in a) {
       this.world = { ...this.world, dots: null };
     } else if ("ridge" in a) {

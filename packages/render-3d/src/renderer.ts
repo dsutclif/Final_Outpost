@@ -2847,6 +2847,14 @@ export class Renderer3D implements Renderer {
         sp.visible = this.labels.apply(sp, `cap|${c.type}`, () => this.warnArt("+", this.tokens.interactive), 10);
         sp.position.set(pos.x, ART_M * (1.15 + Math.sin(this.t * 3 + c.id) * 0.06), pos.y);
       } else if (p.sprites[0]) p.sprites[0].visible = false;
+      // a pickup by hand (level 5 helmet) glints so it reads in the night light: a soft warm halo, a ring and a four-point star that swell and fade
+      if (c.pickup) {
+        const gl = this.sprite(p, 1);
+        gl.visible = this.labels.apply(gl, "cap|glint", () => this.glintArt(), 60);
+        const pulse = 0.82 + 0.18 * Math.sin(this.t * 3.2);
+        gl.scale.multiplyScalar(pulse);
+        gl.position.set(pos.x, ART_M * 0.45, pos.y);
+      }
     }
   }
 
@@ -3910,6 +3918,22 @@ export class Renderer3D implements Renderer {
         drawResIcon(g, 36, 35, 20, resToken(t, res), t.ink, res);
         g.font = `800 40px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
         g.fillStyle = ui.panel; g.fillText(num, 36 + (W - 36) / 2, 38);
+      },
+    };
+  }
+
+  /** The glint on a pickup capture: warm halo, thin ring, bright four-point star (readable at phone size over dark ground). */
+  private glintArt(): LabelArt {
+    return {
+      w: 128, h: 128,
+      draw: (g) => {
+        const grad = g.createRadialGradient(64, 64, 4, 64, 64, 62);
+        grad.addColorStop(0, "rgba(255,244,190,1)"); grad.addColorStop(0.3, "rgba(255,206,110,0.75)"); grad.addColorStop(0.7, "rgba(255,170,70,0.25)"); grad.addColorStop(1, "rgba(255,170,70,0)");
+        g.fillStyle = grad; g.beginPath(); g.arc(64, 64, 62, 0, Math.PI * 2); g.fill();
+        g.lineWidth = 6; g.strokeStyle = "rgba(255,230,160,1)"; g.beginPath(); g.arc(64, 64, 44, 0, Math.PI * 2); g.stroke();
+        g.fillStyle = "rgba(255,250,225,0.98)"; g.beginPath();
+        for (let i = 0; i < 8; i++) { const r = i % 2 === 0 ? 38 : 7, an = (i * Math.PI) / 4 - Math.PI / 2; g.lineTo(64 + Math.cos(an) * r, 64 + Math.sin(an) * r); }
+        g.closePath(); g.fill();
       },
     };
   }

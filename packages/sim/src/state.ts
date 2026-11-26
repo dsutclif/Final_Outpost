@@ -254,6 +254,8 @@ export interface CaptureState {
   pickup?: true;
   /** A pickup capture cannot be taken before this tick: revealed, it is seen and spoken of first (level 5 helmet). */
   takeAt?: number;
+  /** A pickup capture the story holds back (director action `pickupHold`): it cannot be taken until the story lets go, whoever stands on it. */
+  hold?: true;
 }
 
 export interface PreyState {

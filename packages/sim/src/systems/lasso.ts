@@ -118,7 +118,7 @@ const PICKUP_WAIT = 100;
  */
 function pickUp(st: State, out: SimEvent[]): void {
   for (const c of [...st.captures]) {
-    if (!c.pickup || c.state !== "idle" || (c.takeAt !== undefined && st.tick < c.takeAt) || !within(c.pos, st.player.pos, PICKUP_R)) continue;
+    if (!c.pickup || c.hold || c.state !== "idle" || (c.takeAt !== undefined && st.tick < c.takeAt) || !within(c.pos, st.player.pos, PICKUP_R)) continue;
     st.captures.splice(st.captures.indexOf(c), 1);
     out.push({ t: "captured", capture: c.id, at: { ...c.pos } });
     out.push({ t: "crate_delivered", capture: c.id, at: { ...c.pos }, bundle: {}, item: true });

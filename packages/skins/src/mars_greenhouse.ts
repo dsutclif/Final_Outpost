@@ -1516,6 +1516,10 @@ export const marsGreenhouse: Skin = {
           // too fast). Game time, so it holds through lines and the paused fall. A good run reaches the retreat at ~160 s
           // (light about -0.75 then), the rest finishes while the helmet is towed; slower runs simply arrive darker
           { on: { start: true }, do: [{ light: "ember", seconds: 200 }] },
+          // the helmet cannot be taken until KILN has said "They dropped something.", wherever the commander stands (the line lets it go)
+          { on: { start: true }, do: [{ pickupHold: true }] },
+          // safety: if the warlord never broke off (no retreat lines to wait for), the helmet is free at dawn
+          { on: { after: "dawn", ticks: 300 }, unless: "retreat", do: [{ pickupHold: false }] },
           // the first dust mites up out of the sand, measured from the east side of the base, wide enough to cover the whole east edge (not the player, who may be at the
           // far pad: a nearby kill never let the line play), as they come in among the raiders
           { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, ordered: true, do: [{ stage: "okafor", by: [-15, -100] }, { line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
@@ -1540,15 +1544,9 @@ export const marsGreenhouse: Skin = {
           ] },
           // KILN points at the helmet only once the commander is close enough to have it on screen (within 100 of it, the phone view
           // shows everything within 150), wherever the player stood when the warlord fell (outpost-ops#387)
-          { on: { near: { entity: "helmet" }, r: 100, after: "retreat", seen: true }, do: [
+          { on: { near: { entity: "helmet" }, r: 100, after: "retreat", seen: true }, ordered: true, do: [
             { line: "They dropped something.", who: "kiln" },
-          ] },
-          // picked up before those lines came (the commander was already standing at the fall spot): they play now, ahead of
-          // the kneel, so the helmet is never taken in silence
-          { on: { event: "captured" }, unless: "retreat", ordered: true, do: [
-            { line: "They're running. It's over for tonight.", who: "kiln" },
-            { line: "But the signal hasn't stopped. That was never them.", who: "kiln" },
-            { line: "They dropped something.", who: "kiln" },
+            { pickupHold: false },
           ] },
           // dawn: the waves are done and the helmet can be towed
           { id: "dawn", on: { goal: "hold", is: "done" }, do: [{ guide: true, to: { entity: "helmet" } }] },
