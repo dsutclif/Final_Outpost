@@ -76,8 +76,19 @@ describe("the stage step", () => {
     });
     h.d.update(16, state());
     expect(h.log.some((l) => l.startsWith("line:"))).toBe(false);
-    for (let i = 0; i < 10; i++) h.d.update(1000, state());
+    for (let i = 0; i < 100; i++) h.d.update(1000, state());
     expect(h.log).toContain("line:okafor:late");
+    vi.useRealTimers();
+  });
+
+  it("does not time out on one long frame: the walker only moves 0.1 s a frame", () => {
+    vi.useFakeTimers();
+    const h = harness({ goals: [], cast, cues: [{ on: { start: true }, do: [{ stage: "okafor" }, { line: "late", who: "okafor" }] }] }, {
+      inFrame: () => false, drawnAt: () => ({ x: 900, y: 900 }), entryFrom: () => null,
+    });
+    h.d.update(16, state());
+    h.d.update(30000, state());
+    expect(h.log.some((l) => l.startsWith("line:"))).toBe(false);
     vi.useRealTimers();
   });
 

@@ -136,6 +136,8 @@ const NO_SCENE: SceneMode = { on: false, why: null, movers: [], vehicles: true }
 const CARD_SECONDS = 3;
 /** A stage step gives up after this long (a blocked walk must not hang the level). */
 const STAGE_TIMEOUT_S = 8;
+/** The walker's clock: the renderer moves a figure at most this far per frame, so one long frame (a stalled tab, a slow phone, a headless browser between shots) must not burn the stage time out in a single step. */
+const STAGE_FRAME_CAP_S = 0.1;
 /** How far inside the frame (share of its size) a walking-in trader must stand before her line starts. */
 const STAGE_INSET = -0.1;
 const STAGE_SPOT: readonly [number, number] = [-16, 24];
@@ -244,6 +246,19 @@ export class StoryDirector {
 
   /** A camera beat (pausing or a nudge) is moving the camera now; for the review probe. */
   get cameraOn(): boolean { return this.active?.k === "camera" || !!this.nudge; }
+  /** A cast member is walking in for a line (a stage step or an `arrive` walk): the figure moves only on drawn frames; for the review probe. */
+  get staging(): boolean { return this.active?.k === "stage"; }
+  /** A cue waits only for its place to come on screen (the player is near, the frame test fails): the review probe's fast-forward then draws frames so the camera can show it. */
+  get seenPending(): boolean {
+    const st = this.st;
+    if (!st) return false;
+    const x = st.player.pos.x / FP, y = st.player.pos.y / FP;
+    return this.level.cues.some((c) => "near" in c.on && !!c.on.seen && this.armed(c) && this.playerNear({ ...c.on, seen: false }, x, y));
+  }
+  /** What holds the director, for a probe that finds nothing moving. */
+  stallInfo(): Record<string, unknown> {
+    return { active: this.active?.k ?? null, queue: this.queue.length, lineUp: this.lineUp, promptOpen: this.promptOpen, explicitFreeze: this.explicitFreeze, held: !!this.held, nudge: !!this.nudge };
+  }
 
   /** A line, card, film or camera beat is on: coach hints and marks stay quiet so they never talk over the story. */
   get busy(): boolean {
@@ -349,7 +364,7 @@ export class StoryDirector {
       if (!this.lineUp && !this.promptOpen) {
         const at = a.key ? this.host.drawnAt?.(a.key) ?? null : null;
         if (at && (!a.seen || Math.abs(at.x - a.seen.x) + Math.abs(at.y - a.seen.y) > 0.5)) { a.seen = { x: at.x, y: at.y }; a.left = STAGE_TIMEOUT_S; }
-        else a.left -= dt;
+        else a.left -= Math.min(dt, STAGE_FRAME_CAP_S);
       }
       if (a.left <= 0 || this.staged(a, st)) this.active = null;
     }

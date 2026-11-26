@@ -339,7 +339,7 @@ export function installReview(app: App): void {
       let now = performance.now();
       a.last = now;
       try {
-        for (let i = 0; i < seconds * 30 && !app.debugView?.ended && lineSeq === seenSeq; i++) { now += 1000 / 30; a.frame(now); if (stopOnCamera && app.debugView?.director?.cameraOn) break; }
+        for (let i = 0; i < seconds * 30 && !app.debugView?.ended && lineSeq === seenSeq; i++) { now += 1000 / 30; skipSync = !app.debugView?.director?.seenPending; a.frame(now); if (stopOnCamera && (app.debugView?.director?.cameraOn || app.debugView?.director?.staging)) break; }
       } finally {
         window.requestAnimationFrame = raf;
         skipSync = false;
@@ -361,6 +361,10 @@ export function installReview(app: App): void {
         guide: { to: w.guideTo, off: w.guideOff, drawn: !!v.guide, toOnScreen: q ? q.x >= 0 && q.y >= 0 && q.x <= window.innerWidth && q.y <= window.innerHeight : null },
       };
     },
+    stall() {
+      const v = app.debugView, a = app as unknown as { hidden: boolean; kiln: unknown; screen: string };
+      return { screen: a.screen, hidden: a.hidden, kiln: !!a.kiln, ended: !!v?.ended, director: v?.director?.stallInfo() ?? null };
+    },
     scene() { const d = app.debugView?.director; return d ? { on: d.scene.on, why: d.scene.on ? d.scene.why : null, pending: d.pendingStory } : null; },
     progress(id) { return app.debugSim?.state.objectives?.find((o) => o.id === id)?.progress ?? null; },
     breakHold(id) {
@@ -377,7 +381,13 @@ export function installReview(app: App): void {
       window.requestAnimationFrame = (() => 0) as typeof raf;
       let now = performance.now();
       a.last = now;
-      try { for (let i = 0; i < frames; i++) { now += 1000 / 30; a.frame(now); } } finally { window.requestAnimationFrame = raf; a.last = performance.now(); }
+      try {
+        for (let i = 0; i < frames; i++) {
+          now += 1000 / 30; a.frame(now);
+          // a camera beat ran on the made-up clock with nothing drawn: put the camera where the beat has it, as drawn frames would have
+          if (i === 1 && app.debugView?.director?.cameraOn) app.debugView.renderer.snapCamera();
+        }
+      } finally { window.requestAnimationFrame = raf; a.last = performance.now(); }
       app.debugView?.director?.view.finishLine?.(); // a typed-out line shows whole
     },
     frames: (from = 0) => ({ total: frames.length, frames: frames.slice(from) }),

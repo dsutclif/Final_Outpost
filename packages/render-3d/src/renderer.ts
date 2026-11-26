@@ -1215,6 +1215,7 @@ export class Renderer3D implements Renderer {
     this.env.update(dt, this.t, this.look, coreW, this.safeR * SAFE_RING_K, this.fuelK, state.hazard?.phase ?? "none", this.camera.position.distanceTo(this.look));
     this.updateDom(state);
     this.declutterOrders();
+    this.clampEdgeLabels();
     this.synced = true;
     // a filmed fall shows no floating labels (names, prices, tags: sprites drawn over the world), this frame only
     const hid: Sprite[] = [];
@@ -2011,6 +2012,26 @@ export class Renderer3D implements Renderer {
         sp.position.y += sp.scale.y * 0.5;
       }
       if (sp.position.y > home + sp.scale.y * 3) sp.position.y = home;
+    }
+  }
+
+  /** A trader's order bubble or a pad's price label that straddles the screen's side edge slides in along the camera's right until the whole label shows. */
+  private clampEdgeLabels(): void {
+    const EDGE_HUD_BOTTOM = 90, EDGE_HUD_TOP = 110;
+    const m = 4, w = this.cssW;
+    let right: Vector3 | null = null;
+    for (const o of this.dynamic.children) {
+      const sp = o as Sprite;
+      if (!sp.isSprite || !sp.visible) continue;
+      const k = sp.userData["label"] as string | undefined;
+      if (!k || !(k.startsWith("ord|") || k.startsWith("pl|"))) continue;
+      if (!right) { this.camera.updateMatrixWorld(); right = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0); }
+      const up = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1);
+      const b = this.spriteBox(sp, right, up), bw = b.x1 - b.x0;
+      if (bw <= 0 || bw > w - 2 * m || b.x1 <= 0 || b.x0 >= w) continue; // wholly off screen (not ours to pull in) or wider than the screen
+      if (b.y1 > this.cssH - EDGE_HUD_BOTTOM || b.y0 < EDGE_HUD_TOP) continue; // under the buttons or the top bar: sliding it in would put it over them
+      const dx = b.x0 < m ? m - b.x0 : b.x1 > w - m ? w - m - b.x1 : 0;
+      if (dx) sp.position.addScaledVector(right, dx * (sp.scale.x / bw));
     }
   }
 

@@ -156,6 +156,8 @@ export interface ReviewApi {
   /** The story's non-caption cues right now: a camera beat moving, the named edge glow and its arrow, the guide arrow. Null outside a story level. */
   cues(): CueSample | null;
   /** Why the story is holding play right now (the director's scene mode), for a probe that finds nothing moving. */
+  /** Where the game loop stands when nothing moves: screen, hidden, KILN intro, the director's queue. */
+  stall(): Record<string, unknown>;
   scene(): { on: boolean; why: string | null; pending: boolean } | null;
   /** Progress of one sim objective (a hold goal's run of ticks), null when there is no such goal. */
   progress(id: string): number | null;
