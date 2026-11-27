@@ -8,3 +8,6 @@ interface ImportMetaEnv {
 
 /** Build id stamped by vite.config.ts (commit on Vercel, "local-<time>" elsewhere); undefined in tests. */
 declare const __BUILD__: string;
+
+/** Vercel deploy environment stamped by vite.config.ts ("production", "preview", "development"; "" off Vercel); undefined in tests. */
+declare const __DEPLOY_ENV__: string;

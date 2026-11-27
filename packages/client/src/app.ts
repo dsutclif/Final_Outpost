@@ -29,6 +29,7 @@ import { TITLE_VIDEO_HOLD_MS, createGate, type Gate } from "./gate.js";
 import { KilnCloud, StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 import { KilnIntro, kilnLines } from "./kilnintro.js";
 import { Reporter, deviceFacts, randomId, type AttemptEnd } from "./report.js";
+import { TEST_BUILD, nextSpeed, runToWave, startWaveParam } from "./testbuild.js";
 import type { LivePortrait } from "./story/view.js";
 
 // App shell: screens (title, level select, intro, play, result, settings), the game loop
@@ -156,6 +157,8 @@ export class App {
   private alertKey = "none";
   private buzzAt = 0;
   private retryArmed: ReturnType<typeof setTimeout> | null = null;
+  /** Test builds only (testbuild.ts): game speed, kept across levels until the page reloads. */
+  private testSpeed = 1;
   private readonly platform: Platform;
   private title: TitleBackdrop | null = null;
   private readonly titleGate: Gate = createGate(TITLE_VIDEO_HOLD_MS);
@@ -870,6 +873,12 @@ export class App {
     };
     this.attachRenderer(this.session, renderer);
     if (!this.session) return;
+    if (TEST_BUILD) {
+      this.session.stepper.speed = this.testSpeed;
+      // ?wave=N: a defend level opens with the bot's build-up played, at the tick wave N starts (story levels keep their beats)
+      const want = startWaveParam(location.search);
+      if (want !== null && !this.skin.story?.levels[meta.id]) this.skipToWave(this.session, want);
+    }
     this.reporter?.levelStart(meta.id, (this.progress.tries[meta.id] ?? 0) + 1);
     this.startGuide(this.session);
     this.progress.current = meta.id;
@@ -1042,9 +1051,29 @@ export class App {
     const tokens = goalTokens(sess.sim.state, sess.manifest, sess.sim.compiled, s);
     ov.innerHTML = `<div class="gmenu"><div class="lbl">${esc(uiText(s, "levelWord"))} ${meta.index + 1}</div><h2>${esc(t.title)}</h2>
       <ul class="mgoals">${tokens.map((k) => `<li class="${k.state}"><span class="mic">${goalIcon(k, 34)}</span><span>${esc(k.label)}</span></li>`).join("")}</ul>
+      ${TEST_BUILD ? this.testRow(sess) : ""}
       <div class="row"><button data-a="levels">${esc(uiText(s, "allLevels"))}</button><button class="go" data-a="resume">${esc(uiText(s, "resume"))}</button></div></div>`;
-    this.wire(ov, { levels: () => this.quitToLevels(true), resume: () => this.show("playing") });
+    this.wire(ov, {
+      levels: () => this.quitToLevels(true), resume: () => this.show("playing"),
+      speed: () => { this.testSpeed = nextSpeed(this.testSpeed); sess.stepper.speed = this.testSpeed; this.renderMenu(); },
+      lastwave: () => { this.skipToWave(sess, sess.sim.compiled.waves.length); this.show("playing"); },
+    });
     ov.onclick = (e) => { if (e.target === ov) this.show("playing"); };
+  }
+
+  /** Test builds only: the menu's speed button and, on a level with waves still to come, a skip to the last wave. */
+  private testRow(sess: Session): string {
+    const cp = sess.sim.compiled, st = sess.sim.state;
+    const skip = cp.waves.length > st.waves.idx && !sess.director ? `<button data-a="lastwave">Test: to wave ${cp.waves.length}</button>` : "";
+    return `<div class="row"><button data-a="speed">Test: speed ${this.testSpeed}x</button>${skip}</div>`;
+  }
+
+  /** Test builds only: the reference bot plays until wave `n` starts, through the app's own tick (events, goals, end). */
+  private skipToWave(s: Session, n: number): void {
+    if (s.ended) return;
+    runToWave(s.sim, n, (input) => this.stepOnce(s, input));
+    s.stepper.reset();
+    this.renderNow(s);
   }
 
   private disarmRetry(): void {

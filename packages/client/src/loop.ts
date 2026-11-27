@@ -13,16 +13,19 @@ export class FixedStepper {
   private acc = 0;
   /** Ticks dropped since the last reset (shown in the debug overlay). */
   dropped = 0;
+  /** Game speed (test builds only, testbuild.ts): wall time counts this many times over, and catch-up grows with it. */
+  speed = 1;
 
   constructor(readonly tickMs: number = TICK_MS, readonly maxCatchUp: number = 5) {}
 
   advance(dtMs: number): number {
     if (!(dtMs > 0) || !Number.isFinite(dtMs)) return 0;
-    this.acc += dtMs;
+    this.acc += dtMs * this.speed;
     let n = Math.floor(this.acc / this.tickMs);
-    if (n > this.maxCatchUp) {
-      this.dropped += n - this.maxCatchUp;
-      n = this.maxCatchUp;
+    const cap = this.maxCatchUp * this.speed;
+    if (n > cap) {
+      this.dropped += n - cap;
+      n = cap;
       // keep only the fractional part so alpha stays meaningful
       this.acc = this.acc % this.tickMs;
       return n;
