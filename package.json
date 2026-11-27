@@ -18,6 +18,7 @@
     "levels:check": "vite-node tools/regress-levels.ts --",
     "levels:repin": "vite-node tools/repin-levels.ts --",
     "levels:digest": "vite-node tools/candidate-digest.ts -- --digest",
+    "levels:analyse": "vite-node tools/candidate-analysis.ts -- --run",
     "levels:start-table": "vite-node tools/start-table.ts -- --write",
     "levels:reset": "vite-node tools/reset-levels.ts --",
     "levels:next": "vite-node tools/levels-next.ts --",

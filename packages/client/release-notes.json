@@ -1,1 +1,1 @@
-{"notes":["Test builds get a game speed button and can open a defend level at a chosen wave; the released game is unchanged."]}
+{"notes":["Behind the scenes: a new report reads every level build's full log and shows why candidate levels are turned down, so level generation can be tuned.","Test builds get a game speed button and can open a defend level at a chosen wave; the released game is unchanged."]}
