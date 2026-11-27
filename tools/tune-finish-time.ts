@@ -2,7 +2,9 @@
 // docs/handoffs/difficulty-tune-plan.md, "per-goal-type finish-time targets", Doug 2026-11-27).
 //   target seconds = baseline for the level's goal family (tools/finish-time-baselines.json) x the sequencer's
 //   difficulty target for the slot. Then: measure the goal-size dial grid, pick the dial whose median finish time is
-//   nearest the target (refining once between the two bracketing dials), confirm on fresh seeds, and write a verdict:
+//   nearest the target (refining once between the two bracketing dials), confirm on fresh seeds, and write a verdict.
+//   Small-count goals (crates, core_level, build_count) that miss by goal size retry with --knob cost (pad price or
+//   crate distance, goal count as built; Doug 2026-11-27). Verdicts:
 //     on-target       dial found, confirm median within the tolerance
 //     needs-more-map  every goal size that fits the map finishes too fast (the goal would stall before the target)
 //     too-long        even the smallest goal size finishes too slowly
@@ -35,8 +37,8 @@ const target = (baselines[family] ?? NaN) * targetFor(index, slotFor(index).phas
 mkdirSync(outRoot, { recursive: true });
 
 type Run = { dial: number; seed: number; outcome: string; goalSec: number | null };
-function tune(dials: number[], seeds: number, seedStart: number, dir: string): Run[] {
-  const r = spawnSync("pnpm", ["exec", "vite-node", "tools/tune-level.ts", "--", "--level", level, "--knob", "goal", "--bot", bot,
+function tune(knob: string, dials: number[], seeds: number, seedStart: number, dir: string): Run[] {
+  const r = spawnSync("pnpm", ["exec", "vite-node", "tools/tune-level.ts", "--", "--level", level, "--knob", knob, "--bot", bot,
     "--dials", dials.join(","), "--seeds", String(seeds), "--seed-start", String(seedStart), "--out", dir], { encoding: "utf8", shell: true });
   if (r.status !== 0) throw new Error(`tune-level failed for ${level}: ${r.stderr.slice(-800)}`);
   return readFileSync(`${dir}/runs.jsonl`, "utf8").trim().split("\n").map((l) => JSON.parse(l) as Run);
@@ -60,35 +62,58 @@ function result(verdict: string, extra: Record<string, unknown> = {}): void {
   console.log(JSON.stringify(rec));
 }
 
+type Verdict = { verdict: string; knob: string } & Record<string, unknown>;
+const COST_GOALS = new Set(["crates", "core_level", "build_count"]);
 function main(): void {
   const goalType = String(m["goal"]?.type);
   if (TIMED.has(goalType) || (m["waves"] as unknown[] | undefined)?.length) return result("win-rate");
   if (typeof m["goal"]?.n !== "number" && typeof m["goal"]?.seconds !== "number") return result("no-amount");
   if (!Number.isFinite(target)) throw new Error(`no finish-time baseline for family ${family} in tools/finish-time-baselines.json`);
+  // goal size first; small-count goals fall back to the fine knob (pad price, crate distance), goal count as built
+  const first = solve("goal");
+  if (first.verdict === "on-target" || !COST_GOALS.has(goalType)) return result(first.verdict, first);
+  const second = solve("cost");
+  if (second.verdict === "on-target") return result("on-target", { ...second, goalKnob: first });
+  return result(first.verdict, { ...first, costKnob: second });
+}
+
+function solve(knob: string): Verdict {
+  const v = (verdict: string, extra: Record<string, unknown> = {}): Verdict => ({ verdict, knob, ...extra });
 
   // 1. measure the grid (5 seeds), refine once between the dials that straddle the target
-  let runs = tune(GRID, 5, 1, `${outRoot}/measure`);
+  let runs = tune(knob, GRID, 5, 1, `${outRoot}/${knob}-measure`);
   let med = perDial(runs);
-  const fits = [...med].filter(([, s]) => s != null) as [number, number][];
-  if (!fits.length) return result("needs-more-map", { note: "every goal size stalls" });
-  if (fits.every(([, s]) => s < target)) return result("needs-more-map", { fastestFit: fits.at(-1), stallsAbove: fits.at(-1)![0] });
-  if (fits.every(([, s]) => s > target)) return result("too-long", { smallest: fits[0] });
+  const fitsOf = (): [number, number][] => [...med].filter(([, s]) => s != null) as [number, number][];
+  let fits = fitsOf();
+  if (!fits.length) return v("needs-more-map", { note: "every goal size stalls" });
+  // all too short but a bigger dial stalls: bisect twice between the last fitting dial and the first stalling one
+  for (let i = 0; i < 2 && fits.every(([, s]) => s < target); i++) {
+    const last = fits.at(-1)![0], stall = [...med].find(([d, s]) => d > last && s == null)?.[0];
+    if (stall === undefined) break;
+    const d = Math.round(Math.sqrt(last * stall) * 100) / 100;
+    if (med.has(d)) break;
+    runs = tune(knob, [...med.keys(), d], 5, 1, `${outRoot}/${knob}-measure`); med = perDial(runs); fits = fitsOf();
+  }
+  const near = [...fits].sort((a, b) => miss(a[1]) - miss(b[1]) || Math.abs(Math.log(a[0])) - Math.abs(Math.log(b[0])))[0]!; // ties: the size nearest as built
+  const inTol = Math.abs(near[1] / target - 1) <= tol; // the nearest size is already close enough: confirm it
+  if (!inTol && fits.every(([, s]) => s < target)) return v("needs-more-map", { fastestFit: fits.at(-1), stallsAbove: fits.at(-1)![0] });
+  if (!inTol && fits.every(([, s]) => s > target)) return v("too-long", { smallest: fits[0] });
   const lo = fits.filter(([, s]) => s <= target).at(-1), hi = fits.find(([, s]) => s >= target);
   if (lo && hi && lo[0] !== hi[0] && lo[1] !== hi[1]) {
     // log-linear interpolation between the bracketing dials; the goal amount rounds, so this may land on either step
     const f = Math.log(target / lo[1]) / Math.log(hi[1] / lo[1]);
     const d = Math.round(Math.exp(Math.log(lo[0]) + f * Math.log(hi[0] / lo[0])) * 100) / 100;
-    if (!GRID.includes(d)) { runs = tune([...GRID, d], 5, 1, `${outRoot}/measure`); med = perDial(runs); }
+    if (!GRID.includes(d)) { runs = tune(knob, [...GRID, d], 5, 1, `${outRoot}/${knob}-measure`); med = perDial(runs); }
   }
-  const best = ([...med].filter(([, s]) => s != null) as [number, number][]).sort((a, b) => miss(a[1]) - miss(b[1]))[0]!;
+  const best = ([...med].filter(([, s]) => s != null) as [number, number][]).sort((a, b) => miss(a[1]) - miss(b[1]) || Math.abs(Math.log(a[0])) - Math.abs(Math.log(b[0])))[0]!; // ties: the size nearest as built
 
   // 2. confirm on fresh seeds
-  const conf = tune([best[0]], 10, 101, `${outRoot}/confirm`).filter((r) => r.dial === best[0]);
+  const conf = tune(knob, [best[0]], 10, 101, `${outRoot}/${knob}-confirm`).filter((r) => r.dial === best[0]);
   const unknown = conf.filter((r) => r.outcome !== "win").length;
   const cm = median(conf.filter((r) => r.outcome === "win" && r.goalSec != null).map((r) => r.goalSec!));
   const off = cm / target - 1;
-  if (Math.abs(off) <= tol) return result("on-target", { dial: best[0], confirmMedian: cm, off: +off.toFixed(3), unknown });
-  return result("no-step", { nearestDial: best[0], confirmMedian: cm, off: +off.toFixed(3), unknown,
+  if (Math.abs(off) <= tol) return v("on-target", { dial: best[0], confirmMedian: cm, off: +off.toFixed(3), unknown });
+  return v("no-step", { nearestDial: best[0], confirmMedian: cm, off: +off.toFixed(3), unknown,
     steps: [...med].map(([d, s]) => [d, s]) });
 }
 if (!existsSync(`levels/packs/${pack}/${level}.json`)) throw new Error(`no level ${level}`);

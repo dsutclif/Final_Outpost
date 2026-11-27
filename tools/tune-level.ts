@@ -40,6 +40,30 @@ export function dialWaves(manifest: Record<string, any>, dial: number, keepGap =
   return c;
 }
 
+/** Fine economy dial for small-count goals (Doug 2026-11-27): the goal count stays, the cost of reaching it moves.
+ *  core_level / build_count: price (every res.* cost) of the build pads the goal counts x dial, rounded, at least 1.
+ *  crates: each supply crate's offset from the core x dial (farther or nearer along the same line), clamped inside the
+ *  map. Measurement only: at the rebuild the generator places crates at the solved distance on valid ground. */
+export function dialCost(manifest: Record<string, any>, dial: number): Record<string, any> {
+  const c = JSON.parse(JSON.stringify(manifest)) as Record<string, any>;
+  const g = c["goal"] ?? {}, ents = c["entities"] as any[];
+  if (g.type === "crates") {
+    const core = ents.find((e) => e.type === "sink.core")?.at as [number, number];
+    const { w, h } = c["map"] as { w: number; h: number }, pad = 40; // the outer strip is not walkable: 12 px stalled the bot
+    for (const e of ents) if (e.type === "capture.supply_crate") {
+      e.at = [Math.min(w - pad, Math.max(pad, Math.round(core[0] + (e.at[0] - core[0]) * dial))),
+        Math.min(h - pad, Math.max(pad, Math.round(core[1] + (e.at[1] - core[1]) * dial)))];
+    }
+  } else {
+    const build = g.type === "core_level" ? "sink.core.level" : g.type === "build_count" ? g.build : null;
+    const pads = ents.filter((e) => e.type === "pad.build" && build && e.build === build);
+    if (!pads.length) throw new Error(`goal ${g.type} has no pads to price`);
+    for (const p of pads) for (const k of Object.keys(p.cost ?? {})) p.cost[k] = Math.max(1, Math.round(p.cost[k] * dial));
+  }
+  if (c["params"]?.["level.budgetSeconds"]) c["params"]["level.budgetSeconds"] = Math.round(c["params"]["level.budgetSeconds"] * Math.max(1, dial));
+  return c;
+}
+
 /** Economy goal-size dial: the main goal's amount (n) x dial, rounded, at least 1; for goals counted in seconds
  *  (automate) the seconds x dial; earn_within keeps its window and scales the amount. Applied to the goal and the main
  *  objective (the sim reads the objective, the bot planner the goal). Goals with no amount (house_all, rescue_all) can't be dialled. */
@@ -98,7 +122,7 @@ function playOnce(m: Record<string, any>, seed: number, clock: number): Omit<Tun
 }
 
 function runOne(base: Record<string, any>, dial: number, seed: number): TuneRun {
-  const m = knob === "goal" ? dialGoal(base, dial) : dialWaves(base, dial, args.includes("--keep-gap"));
+  const m = knob === "goal" ? dialGoal(base, dial) : knob === "cost" ? dialCost(base, dial) : dialWaves(base, dial, args.includes("--keep-gap"));
   const ws = m["waves"] as any[];
   const lastSpawn = Math.max(0, ...ws.map((w) => Number(w.t) + Object.values(w.counts as Record<string, number>).reduce((a, b) => a + b, 0) * Number(w.gap ?? 0.5)));
   const clock = Math.max(Number(m["params"]?.["level.budgetSeconds"] ?? 0), lastSpawn + 300);
