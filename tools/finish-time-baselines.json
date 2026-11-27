@@ -1,0 +1,4 @@
+{
+  "note": "Seconds the average bot should take at difficulty 1.0, per goal family (Doug 2026-11-27: one finish-time ramp per goal type, same sawtooth shape). Target for a level = baseline x sequencer targetFor(slot). Set from the geometric mean of today's finish time / difficulty target over Levels 6-25 (engine 0.36.0). Change only on a design decision, not per level.",
+  "baselines": { "rescue": 285, "harvest": 773, "industrialize": 856, "shelter": 267 }
+}
