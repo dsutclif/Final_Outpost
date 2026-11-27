@@ -242,6 +242,7 @@
     },
     {
       "type": "node.salvage_pile",
+      "look": 2,
       "at": [
         917,
         956

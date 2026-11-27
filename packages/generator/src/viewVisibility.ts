@@ -108,7 +108,10 @@ export function occluders(ents: readonly ViewEnt[], opts: ViewOpts = {}): Occlud
     // a locked grow dome is drawn as a blueprint, not as a model
     if (e.type === "node.food_source" && e.enabled === false) continue;
     // scrap heaps take three models in turn by their place in the node list (renderer syncNodes)
-    const t = (nodeI >= 0 && e.type === "node.salvage_pile" ? (T.types[`${e.type}@${1 + (nodeI % 3)}`] ?? T.types[`${e.type}@1`]) : undefined) ?? T.types[`${e.type}@${level(e)}`] ?? T.types[e.type];
+    const look = nodeI >= 0 && e.type === "node.salvage_pile" ? Number((e as { look?: number }).look ?? 1 + (nodeI % 3)) : 0;
+    // look 2 is the flat scrap field: nothing to hide behind, so no occluder
+    if (look === 2) continue;
+    const t = (look ? (T.types[`${e.type}@${look}`] ?? T.types[`${e.type}@1`]) : undefined) ?? T.types[`${e.type}@${level(e)}`] ?? T.types[e.type];
     if (!t) continue;
     // walls "none": wall lines and their gates are not counted; a stand-alone gate is the survivors' arrival gate and stays
     if (opts.walls === "none" && e.type === "struct.gate" && !e["arrivals"]) continue;
@@ -264,4 +267,25 @@ export function occludersAt(ents: readonly ViewEnt[], built: ReadonlySet<string>
     out.push(o);
   }
   return out;
+}
+
+/**
+ * Standing rule (Doug, 2026-11-21): a scrap heap that hides any pad uses the flat scrap field. Sets `look: 2` on each such heap
+ * (the pad's hiders are measured one heap at a time) and repeats until no heap newly clears a pad; returns how many heaps changed.
+ */
+export function flattenHidingScrap(ents: ViewEnt[]): number {
+  let changed = 0;
+  for (;;) {
+    const occs = occluders(ents), pads = ents.filter((e) => e.type.startsWith("pad.") && e.at);
+    const heaps = occs.filter((o) => o.name === "node.salvage_pile" && o.ent !== undefined);
+    let hit = false;
+    for (const h of heaps) {
+      const hides_ = pads.some((p) => {
+        const big = p.type === "pad.build" && (p as { build?: string }).build === "struct.landmark";
+        return viewOf(String(p.id ?? p.type), p.type, p.at!, [h], big ? PAD_RADIUS * 1.4 : PAD_RADIUS).hidden > 0;
+      });
+      if (hides_) { (ents[h.ent!] as { look?: number }).look = 2; changed++; hit = true; }
+    }
+    if (!hit) return changed;
+  }
 }

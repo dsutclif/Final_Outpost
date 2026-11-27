@@ -1,9 +1,9 @@
 {
  "_doc": "Pads hidden (75% or more of the disc covered) or partly hidden on screen per shipped level, tower pads included. Test: pad-view-pack.test.ts. Only ever rewritten when the numbers go down.",
  "total": {
-  "levelsAffected": 32,
-  "levelsHidden": 27,
-  "hiddenPads": 68,
+  "levelsAffected": 31,
+  "levelsHidden": 26,
+  "hiddenPads": 65,
   "partlyPads": 47
  },
  "levels": {
@@ -460,14 +460,12 @@
    "partlyPads": []
   },
   "s1-L059": {
-   "hidden": 6,
+   "hidden": 4,
    "partly": 3,
    "hiddenPads": [
     "tower_n1",
     "tower_n1_up",
     "tower_n1_up3",
-    "train",
-    "barracks_up",
     "medic"
    ],
    "partlyPads": [
@@ -520,11 +518,9 @@
    "partlyPads": []
   },
   "story-L005": {
-   "hidden": 1,
+   "hidden": 0,
    "partly": 0,
-   "hiddenPads": [
-    "train"
-   ],
+   "hiddenPads": [],
    "partlyPads": []
   }
  }

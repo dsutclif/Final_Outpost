@@ -43,6 +43,8 @@ export const NodeEntity = z.object({
   hiddenUntil: z.string().min(1).optional(),
   // How many items this node holds before it is spent (default: its type's stock). Story level 1: each cell crate holds a few cells.
   stock: z.number().int().positive().optional(),
+  // Which scrap heap model to draw (1 ship scrap, 2 flat scrap field, 3 fuselage tube); render-only. Absent: the models take turns by place in the node list.
+  look: z.number().int().min(1).max(3).optional(),
 });
 export const SalesPointEntity = z.object({
   ...base,

@@ -1,6 +1,6 @@
 {
  "_doc": "Pads hidden (any point of the disc covered) during their active window per shipped level, walls and wall-line gates not counted. Test: pad-view-pack.test.ts. Only ever rewritten when the numbers go down.",
- "total": 54,
+ "total": 52,
  "levels": {
   "s1-L006": [
    "housing1"
@@ -128,8 +128,6 @@
    "sawyer"
   ],
   "s1-L059": [
-   "train",
-   "barracks_up",
    "medic"
   ],
   "s1-L060": [
