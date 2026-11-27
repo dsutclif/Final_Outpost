@@ -140,6 +140,8 @@ const STAGE_TIMEOUT_S = 8;
 const STAGE_FRAME_CAP_S = 0.1;
 /** How far inside the frame (share of its size) a walking-in trader must stand before her line starts. */
 const STAGE_INSET = -0.1;
+/** A hostile trigger with `seen`: just inside the edge counts, the line is about it showing up. */
+const HOSTILE_SEEN_INSET = -0.04;
 const STAGE_SPOT: readonly [number, number] = [-16, 24];
 const GOAL_GAP_S = 0.7;
 /** The commander's line is said to the figure who spoke in the last this-many seconds. */
@@ -311,13 +313,13 @@ export class StoryDirector {
     for (const g of this.level.goals) {
       const u = g.until;
       if (!u || this.stepDone.has(g.id)) continue;
-      if (("event" in u && u.event === e.t && matches(u.match, e) && this.counted(u)) || ("goal" in u && e.t === "objective" && u.goal === e.id && (u.is === "done" ? e.done : e.failed))) this.stepDone.add(g.id);
+      if (("event" in u && u.event === e.t && (u.after === undefined || this.firedAt.has(u.after)) && matches(u.match, e) && this.counted(u)) || ("goal" in u && e.t === "objective" && u.goal === e.id && (u.is === "done" ? e.done : e.failed))) this.stepDone.add(g.id);
     }
     for (const c of this.level.cues) {
       if (!this.armed(c)) continue;
       const on = c.on;
       if ("event" in on) { if (on.event === e.t && (on.after === undefined || this.firedAt.has(on.after)) && matches(on.match, e) && this.counted(on)) this.fire(c, st); }
-      else if ("goal" in on && e.t === "objective" && on.goal === e.id && (on.is === "done" ? e.done : e.failed)) this.fire(c, st);
+      else if ("goal" in on && e.t === "objective" && on.goal === e.id && (on.after === undefined || this.firedAt.has(on.after)) && (on.is === "done" ? e.done : e.failed)) this.fire(c, st);
     }
     if (e.t === "level_end") {
       this.over = true;
@@ -491,7 +493,9 @@ export class StoryDirector {
     const c = on.at ? this.place(on.at) : { x: st.player.pos.x / FP, y: st.player.pos.y / FP };
     if (!c) return false;
     const list = on.fleeing ? st.fleeing ?? [] : st.hostiles;
-    return list.some((h) => h.type === on.hostile && (h.pos.x / FP - c.x) ** 2 + (h.pos.y / FP - c.y) ** 2 <= on.r * on.r);
+    return list.some((h) => h.type === on.hostile && (h.pos.x / FP - c.x) ** 2 + (h.pos.y / FP - c.y) ** 2 <= on.r * on.r
+      // `seen`: only once it is inside the frame, so a line about it plays the moment the player can see it
+      && (!on.seen || !this.host.inFrame || this.host.inFrame({ x: h.pos.x / FP, y: h.pos.y / FP }, HOSTILE_SEEN_INSET)));
   }
 
   /** The place is well inside the frame (true when it cannot be placed, or the host cannot tell). */

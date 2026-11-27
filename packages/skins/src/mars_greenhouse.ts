@@ -1091,6 +1091,9 @@ export const marsGreenhouse: Skin = {
           // the shelf holds no more greens: carrying them to it leads nowhere, so the arrow stands on the clerk pad where traders pay
           { when: [{ fired: "selaMet" }, { not: "digDone" }, { shelfFull: true }, { carrying: "res.food_raw_1" }], to: { at: [220, 873] } },
           { when: [{ fired: "selaMet" }, { not: "firstDone" }, { carrying: "res.food_raw_1" }], to: { entity: "kiosk" } },
+          // greens on the shelf, or coins on the counter: the arrow stands on the register (clerk pad), not the kiosk as a whole (Doug, 2026-11-27)
+          { when: [{ fired: "selaMet" }, { not: "digDone" }, { coinsWaiting: true }], to: { at: [220, 873] } },
+          { when: [{ fired: "shelfStocked" }, { not: "firstDone" }], to: { at: [220, 873] } },
           { when: [{ fired: "selaMet" }, { not: "firstDone" }], to: { entity: "field1" } },
           { when: [{ fired: "firstDone" }, { not: "wallDone" }, { carrying: "res.food_raw_1" }], to: { entity: "kiosk" } },
           { when: [{ fired: "firstDone" }, { not: "wallDone" }, { credits: 8 }], to: { at: [220, 240] } },
@@ -1116,7 +1119,9 @@ export const marsGreenhouse: Skin = {
           { id: "first", hold: true, label: "Sell Sela some greens" },
           // S43 (Doug, 2026-11-07): the ring is no longer prebuilt; the player builds it here, the star is the wall
           { id: "walls", label: "Build the camp wall (8)" },
-          { id: "clear", label: "Dig through the rockslide" },
+          // after the wall the goal matches the lines and arrows: greens to the kiosk first; the dig shows when KILN names the slide (Doug, 2026-11-27)
+          { id: "greens2", label: "Take one more load of greens to the kiosk", until: { event: "sold", match: { res: "res.food_raw_1" }, after: "wallDone" } },
+          { id: "clear", hold: true, label: "Dig through the rockslide" },
           { id: "meat", label: "Sell protein at the kiosk" },
           { id: "train", hold: true, label: "Train Tam to run the dome" },
           { id: "main", label: "Save up and build the habitat hub" },
@@ -1193,7 +1198,7 @@ export const marsGreenhouse: Skin = {
             { guide: true, to: { entity: "field1" } },
           ] },
           // the first greens go on the shelf: the ruined kiosk fades into the ordinary one (Doug 2026-11-24)
-          { on: { event: "deposited", match: { res: "res.food_raw_1", to: "sink.sales_point" }, after: "selaIn" }, do: [{ kioskRestore: 4 }] },
+          { id: "shelfStocked", on: { event: "deposited", match: { res: "res.food_raw_1", to: "sink.sales_point" }, after: "selaIn" }, do: [{ kioskRestore: 4 }] },
           // greens in hand: the arrows lead to the kiosk
           { on: { event: "gathered", match: { res: "res.food_raw_1" }, after: "selaIn" }, do: [{ guide: true, to: { entity: "kiosk" } }] },
           // the first coins go on a wall: KILN looks ahead to the nights and to the raiders of level 5
@@ -1215,9 +1220,10 @@ export const marsGreenhouse: Skin = {
           { id: "wallDone", on: { goal: "walls", is: "done" }, ordered: true, do: [
             // no road-crew buggy here: it drove into a commander walking outside the wall, and it drives in again for the hub
             // the hub is shown first, then Rhee walks in beside the commander and says what it is for
-            { camera: { to: { entity: "hub" }, pan: 0.5, hold: 0.8, back: 0.4 } },
+            // Rhee says they need a hub, then the camera shows it, then KILN (Doug, 2026-11-27)
             { stage: "rhee", by: [40, -70] },
             { line: "These pods kept us alive, but they won't last another storm. We need a habitat hub.", who: "rhee" },
+            { camera: { to: { entity: "hub" }, pan: 0.5, hold: 0.8, back: 0.4 } },
             { line: "Take one more load of greens to the kiosk, and keep saving credits for that hub.", who: "kiln" },
             { walk: "rhee", to: false },
           ] },
@@ -1230,6 +1236,7 @@ export const marsGreenhouse: Skin = {
             { camera: { to: { entity: "flats" }, pan: 0.6, hold: 0.8, back: 0.001 } },
             { camera: { to: { entity: "rockslide" }, pan: 0.4, hold: 0.7, back: 0.6 } },
             { line: "The slide is loose rock... walk up to it and dig... one section at a time.", who: "kiln" },
+            { goal: "clear" },
           ] },
           // dug by hand: no credits, so no road crew
           { id: "digDone", on: { event: "zone_cleared" }, ordered: true, do: [
@@ -1317,6 +1324,7 @@ export const marsGreenhouse: Skin = {
           { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }, { padVisible: "cashier" }], to: { entity: "field1" } },
           { when: [{ fired: "serverHired" }, { goal: "train", is: "open" }], to: { entity: "kiosk" } },
           // the town runs itself: the arrows lead on to the recorder, and stay there if a stalled job took them elsewhere first
+          { when: [{ fired: "recorderHooked" }, { goal: "main", is: "open" }], to: { entity: "core" } },
           { when: [{ goal: "auto", is: "done" }, { goal: "main", is: "open" }], to: { entity: "recorder" } },
         ],
         // manifest people order: Pip, Rhee, Okafor, Tam, then Sela's two drivers. Sela is a standing rider (customer id 99, never a real
@@ -1350,11 +1358,14 @@ export const marsGreenhouse: Skin = {
             { spirit: "fading" },
             // KILN's basis for the new date: the stars and Sela's clock (Doug, 2026-11-04)
             { line: "I shut down everything except the pods to save power, my clock too. It only started again when you woke me.", who: "kiln", head: "K.I.L.N. · DAY 4" },
-            { line: "I should be able to check by the stars overhead. Sela's clock says the same, so she's right. It's been four thousand and twenty-three days.", who: "kiln" },
+            // two blocks, the first trailing off while KILN checks (Doug, 2026-11-27)
+            { line: "I should be able to check by the stars overhead...", who: "kiln" },
+            { line: "Sela's clock says the same, so she's right. It's been four thousand and twenty-three days.", who: "kiln" },
             { spirit: "idle" },
             { day: "DAY 4,023", sub: "KILN's day counter restarted when the reactor was relit.", seconds: 3 },
-            { line: "I asked how long we were under. I didn't really want to know.", who: "rhee" },
-            { line: "Eleven years. And four empty pods. Why?", who: "commander" },
+            // Rhee says the number herself, so the commander is not telling her what she did not want to hear (Doug, 2026-11-27)
+            { line: "Eleven years. I asked how long we were under, and now I wish I hadn't.", who: "rhee" },
+            { line: "And four empty pods. Why?", who: "commander" },
             { line: "I'm scanning the wreck for our flight recorder. It might be able to explain how this happened.", who: "kiln" },
             { camera: { to: { entity: "recorder" }, pan: 1.3, hold: 1.2, back: 1.1 } },
             { line: "That's a long walk, and there's a line at the kiosk. If I go, the town stops.", who: "commander" },
@@ -1401,7 +1412,9 @@ export const marsGreenhouse: Skin = {
           { id: "cookHired", on: { event: "hired", match: { pad: "cook" } }, do: [] },
           { id: "serverHired", on: { event: "hired", match: { pad: "server" } }, do: [] },
           // all three trained: a small light starts blinking at the wreck
-          { id: "handsOff", on: { event: "hired", match: { pad: "cashier" } }, do: [
+          { id: "cashierHired", on: { event: "hired", match: { pad: "cashier" } }, do: [] },
+          // the line waits for the cashier to reach the register, about 3 s from the pad (Doug, 2026-11-27)
+          { id: "handsOff", on: { after: "cashierHired", ticks: 90 }, do: [
             // the arrows lead east to the flight recorder (Doug, 2026-11-24)
             { guide: true, to: { entity: "recorder" } },
             { line: "They've got it now. Head east to the wreck while the crew keep the town running.", who: "kiln" },
@@ -1414,7 +1427,7 @@ export const marsGreenhouse: Skin = {
           { on: { near: { entity: "recorder" }, r: 50 }, do: [{ dotsOff: true }] },
           { id: "revealed", on: { event: "capture_revealed" }, do: [] },
           // in tow: KILN speaks once the crate is hooked (it is the only capture here, and the commander is beside it, so it is on screen), and the arrows lead home again
-          { on: { event: "captured" }, ordered: true, do: [{ guide: true }, { camera: { to: { entity: "recorder" }, pan: 0.5, hold: 0.4, back: 0.6 } }, { line: "That's it. Bring it home to me.", who: "kiln" }] },
+          { id: "recorderHooked", on: { event: "captured" }, ordered: true, do: [{ guide: true }, { camera: { to: { entity: "recorder" }, pan: 0.5, hold: 0.4, back: 0.6 } }, { line: "That's it. Bring it home to me.", who: "kiln" }] },
           // home with the recorder: KILN plays its bay-camera footage (the crash_log live scene)
           { on: { event: "crate_delivered" }, ordered: true, do: [
             { spirit: "pulse" },
@@ -1449,7 +1462,8 @@ export const marsGreenhouse: Skin = {
           { id: "first", label: "Stop the first raiders" },
           { id: "turret", label: "Build a turret" },
           { id: "arrive", hold: true, label: "Let the settlers in" },
-          { id: "train", label: "Train a guard" },
+          // held until the second wave is on (Doug, 2026-11-27): its raiders drop the scrap to pay for the guard in one go
+          { id: "train", hold: true, label: "Pay with scrap to train a guard" },
           { id: "hold", label: "Keep collecting scrap, hire 1 more guard, and fight defenders to protect our camp till sunrise" },
           { id: "main", label: "Pick up the helmet" },
         ],
@@ -1457,6 +1471,8 @@ export const marsGreenhouse: Skin = {
         guideRules: [
           { when: [{ fired: "trainOpen" }, { not: "trainHired" }, { not: "dawn" }, { padVisible: "train" }, { carrying: "res.salvage" }], to: { entity: "train" } },
           { when: [{ fired: "trainOpen" }, { not: "trainHired" }, { not: "dawn" }] },
+          { when: [{ fired: "trainOpenLate" }, { not: "trainHired" }, { not: "dawn" }, { padVisible: "train" }, { carrying: "res.salvage" }], to: { entity: "train" } },
+          { when: [{ fired: "trainOpenLate" }, { not: "trainHired" }, { not: "dawn" }] },
         ],
         cues: [
           { on: { start: true }, do: [
@@ -1502,8 +1518,21 @@ export const marsGreenhouse: Skin = {
             { guide: true, to: { entity: "gate" } },
           ] },
           // train a guard (paid in scrap): the guide rules below send the arrows to scrap until the commander carries the price, then to the guard pad
-          { id: "trainOpen", on: { goal: "arrive", is: "done" }, ordered: true, do: [
+          // it opens when the second wave starts, so its raiders' scrap pays for the guard in one go (Doug, 2026-11-27).
+          // Settlers only come while no raider is alive, so either they are in before wave 2 (trainOpen, at its start) or
+          // wave 2 came first and they come after it (trainOpenLate, as they come in)
+          { id: "arrived", on: { goal: "arrive", is: "done" }, do: [] },
+          { id: "wave2", on: { event: "wave_started", match: { idx: 2 } }, do: [] },
+          { id: "trainOpen", on: { event: "wave_started", match: { idx: 2 }, after: "arrived" }, ordered: true, do: [
+            { goal: "train" },
             { dots: [{ entity: "train" }], period: 2 },
+            { stage: "okafor", by: [-15, -100] },
+            { line: "Good. Train one as a guard to hold the gate with me.", who: "okafor" },
+          ] },
+          { id: "trainOpenLate", on: { goal: "arrive", is: "done", after: "wave2" }, unless: "trainOpen", ordered: true, do: [
+            { goal: "train" },
+            { dots: [{ entity: "train" }], period: 2 },
+            { stage: "okafor", by: [-15, -100] },
             { line: "Good. Train one as a guard to hold the gate with me.", who: "okafor" },
           ] },
           { id: "trainHired", on: { event: "hired", match: { pad: "train" } }, unless: "fall", do: [
@@ -1523,8 +1552,8 @@ export const marsGreenhouse: Skin = {
           // the first dust mites up out of the sand, measured from the east side of the base, wide enough to cover the whole east edge (not the player, who may be at the
           // far pad: a nearby kill never let the line play), as they come in among the raiders
           { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, ordered: true, do: [{ stage: "okafor", by: [-15, -100] }, { line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
-          // just before the warlord walks into frame (it spawns beyond the map's edge), not when it spawns (Doug)
-          { on: { hostile: "hostile.boss", r: 330 }, ordered: true, do: [{ stage: "lieutenant" }, { line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
+          // as soon as the warlord is on screen, not when it reaches the commander (Doug, 2026-11-27); it spawns beyond the map's edge
+          { on: { hostile: "hostile.boss", r: 5000, seen: true }, ordered: true, do: [{ stage: "lieutenant" }, { line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
             // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up and runs (S32),
             // filmed in the level with play paused (Doug, 2026-11-08); the live scene stands in without the models.

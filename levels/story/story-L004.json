@@ -623,8 +623,8 @@
    "type": "struct.gate",
    "id": "gate",
    "at": [
-    490,
-    727.5
+    287.5,
+    790
    ],
    "arrivals": {
     "every": 3,

@@ -15,8 +15,8 @@ export type StoryTrigger =
   | { start: true }
   /** A sim event by its `t`; `match` compares the event's own fields, e.g. { role: "role.hauler" }; `count`: on the n-th such event; `after`: only once that cue has fired. */
   | { event: string; match?: Readonly<Record<string, string | number | boolean>>; count?: number; after?: string }
-  /** An objective, by manifest objective id, became done or failed in the sim (even before its turn). */
-  | { goal: string; is: "done" | "failed" }
+  /** An objective, by manifest objective id, became done or failed in the sim (even before its turn); `after`: only once that cue has fired. */
+  | { goal: string; is: "done" | "failed"; after?: string }
   /** The player came within `r` world units (once the cue `after` has fired, when given); with `seen`, only while that place is also on screen, so a line that names it never plays before it can be seen. */
   | { near: StoryPlace; r: number; after?: string; seen?: boolean }
   /** `ticks` sim ticks after the cue `after` fired (from tick 0 without it). Sim time, so freezes don't count. */
@@ -24,8 +24,9 @@ export type StoryTrigger =
   /**
    * A hostile of type `hostile` came within `r` world units of `at` (the player without it); `fleeing` looks at the
    * ones breaking off (bossRetreat) instead of the ones fighting. Fires once the cue `after` has fired, when given.
+   * `seen`: only once that hostile is inside the frame.
    */
-  | { hostile: string; r: number; at?: StoryPlace; fleeing?: boolean; after?: string }
+  | { hostile: string; r: number; at?: StoryPlace; fleeing?: boolean; after?: string; seen?: boolean }
   /** The camp holds at least `credits` credits (once the cue `after` has fired, when given). */
   | { credits: number; after?: string }
   /** A hold goal `stalled` (manifest objective id) lost its progress: a job it counts stopped. Needs the cue `after` to have fired; pair with `repeat`. */

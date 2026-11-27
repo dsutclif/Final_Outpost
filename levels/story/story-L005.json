@@ -663,7 +663,7 @@
  ],
  "waves": [
   {
-   "t": 15,
+   "t": 11,
    "counts": {
     "hostile.raider_humanoid": 3
    },
