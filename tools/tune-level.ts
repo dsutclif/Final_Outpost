@@ -22,6 +22,7 @@ const seeds = Number(opt("seeds", "5"));
 const botName = opt("bot", "average");
 const outDir = opt("out", `tune-data/${level}`);
 const runsFile = `${outDir}/runs.jsonl`;
+const knob = opt("knob", "waves");
 const bot = PROFILES[botName];
 if (!bot) throw new Error(`unknown bot ${botName}`);
 
@@ -38,9 +39,30 @@ export function dialWaves(manifest: Record<string, any>, dial: number, keepGap =
   return c;
 }
 
-export type Outcome = "win" | "loss" | "unknown";
+/** Economy goal-size dial: the main goal's amount (n) x dial, rounded, at least 1; for goals counted in seconds
+ *  (automate) the seconds x dial; earn_within keeps its window and scales the amount. Applied to the goal and the main
+ *  objective (the sim reads the objective, the bot planner the goal). Goals with no amount (house_all, rescue_all) can't be dialled. */
+export function dialGoal(manifest: Record<string, any>, dial: number): Record<string, any> {
+  const c = JSON.parse(JSON.stringify(manifest)) as Record<string, any>;
+  const scale = (o: Record<string, any> | undefined) => {
+    if (!o) return false;
+    const key = typeof o["n"] === "number" ? "n" : typeof o["seconds"] === "number" ? "seconds" : null;
+    if (!key) return false;
+    o[key] = Math.max(1, Math.round(o[key] * dial));
+    return true;
+  };
+  const ok = scale(c["goal"]);
+  const main = (c["objectives"] as any[] | undefined)?.find((o) => o.id === "main") ?? (c["objectives"] as any[] | undefined)?.[0];
+  if (main) scale(main.params);
+  if (!ok) throw new Error(`goal ${c["goal"]?.type} has no amount to dial`);
+  // the bot's time budget grows with the goal so a bigger goal is not cut off by a budget sized for the built one
+  if (c["params"]?.["level.budgetSeconds"]) c["params"]["level.budgetSeconds"] = Math.round(c["params"]["level.budgetSeconds"] * Math.max(1, dial));
+  return c;
+}
+
+export type Outcome ="win" | "loss" | "unknown";
 export interface TuneRun {
-  ts: string; engine: string; content: string; level: string; bot: string; dial: number; seed: number;
+  ts: string; engine: string; content: string; level: string; bot: string; knob?: string; dial: number; seed: number;
   outcome: Outcome; reason: string; extended: boolean; goalDone: boolean; endSec: number;
   baseMin: number; baseMinByWave: number[]; wavesStarted: number; nWaves: number;
   /** Losses: the wave the base fell in (1-based) and the attacker HP still on the field / all attacker HP spawned so far. */
@@ -73,7 +95,7 @@ function playOnce(m: Record<string, any>, seed: number, clock: number): Omit<Tun
 }
 
 function runOne(base: Record<string, any>, dial: number, seed: number): TuneRun {
-  const m = dialWaves(base, dial, args.includes("--keep-gap"));
+  const m = knob === "goal" ? dialGoal(base, dial) : dialWaves(base, dial, args.includes("--keep-gap"));
   const ws = m["waves"] as any[];
   const lastSpawn = Math.max(0, ...ws.map((w) => Number(w.t) + Object.values(w.counts as Record<string, number>).reduce((a, b) => a + b, 0) * Number(w.gap ?? 0.5)));
   const clock = Math.max(Number(m["params"]?.["level.budgetSeconds"] ?? 0), lastSpawn + 300);
@@ -81,7 +103,7 @@ function runOne(base: Record<string, any>, dial: number, seed: number): TuneRun 
   if (!p.over) { p = playOnce(m, seed, clock * 3); extended = true; }
   const outcome: Outcome = p.won ? "win" : p.over ? "loss" : "unknown";
   const { won: _w, over: _o, ...rest } = p;
-  return { ts: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, level, bot: botName, dial, seed, outcome, extended, ...rest };
+  return { ts: new Date().toISOString(), engine: ENGINE_VERSION, content: CONTENT_VERSION, level, bot: botName, knob, dial, seed, outcome, extended, ...rest };
 }
 
 /** Logistic fit P(win) = 1 / (1 + exp(k (x - x50))), x = ln(dial); Newton steps with a light ridge so separable data stays finite. */
@@ -112,7 +134,7 @@ export function fitLogistic(pts: { dial: number; win: boolean }[]): { x50: numbe
 function report(runs: TuneRun[]): string {
   const lines: string[] = [];
   const un = runs.filter((r) => r.outcome === "unknown").length, ext = runs.filter((r) => r.extended).length;
-  lines.push(`# Tune ${level} · bot ${botName} · engine ${ENGINE_VERSION} · ${runs.length} runs`, "");
+  lines.push(`# Tune ${level} · knob ${knob} · bot ${botName} · engine ${ENGINE_VERSION} · ${runs.length} runs`, "");
   lines.push(`Undecided (unknown) runs: ${un} of ${runs.length} (${ext} needed the 3x clock).`, "");
   lines.push("| dial | runs | wins | losses | unknown | win rate | mean lowest base | losses: mean wave reached | losses: mean attacker HP left |", "|---|---|---|---|---|---|---|---|---|");
   for (const d of [...new Set(runs.map((r) => r.dial))].sort((x, y) => x - y)) {
@@ -135,7 +157,7 @@ function report(runs: TuneRun[]): string {
 function readRuns(): TuneRun[] {
   if (!existsSync(runsFile)) return [];
   const out: TuneRun[] = [];
-  for (const l of readFileSync(runsFile, "utf8").split("\n")) { if (!l.trim()) continue; try { const j = JSON.parse(l) as TuneRun; if (j.engine === ENGINE_VERSION && j.level === level && j.bot === botName) out.push(j); } catch { /* torn last line */ } }
+  for (const l of readFileSync(runsFile, "utf8").split("\n")) { if (!l.trim()) continue; try { const j = JSON.parse(l) as TuneRun; if (j.engine === ENGINE_VERSION && j.level === level && j.bot === botName && (j.knob ?? "waves") === knob) out.push(j); } catch { /* torn last line */ } }
   return out;
 }
 
