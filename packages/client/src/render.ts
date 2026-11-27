@@ -1,6 +1,6 @@
 import type { Manifest } from "@fo/content";
 import type { SimEvent, State } from "@fo/sim";
-import { loadRenderer3D, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type DebugScene, type GuideMark, type LiveLook, type StoryPresentation } from "@fo/render-3d";
+import { loadRenderer3D, preloadLiveScenes, preloadRenderer3D, type AlertMark, type Camera, type CoachMark, type DebugScene, type GuideMark, type LiveLook, type StoryPresentation } from "@fo/render-3d";
 import type { Skin } from "@fo/skins";
 
 // The client's face of the 3D renderer. three.js stays in its own chunk: only
@@ -103,6 +103,9 @@ function lookTest(): boolean {
     return localStorage.getItem("fo.look") !== "0";
   } catch { return true; }
 }
+
+/** Load the models of the live-scene films a level will play, now (a failure leaves the scene to load them itself). */
+export const warmFilms = (films: readonly string[]): void => { if (films.length) void preloadLiveScenes(films).catch(() => undefined); };
 
 export const warm3D = (): void => { void preloadRenderer3D().catch(() => undefined); };
 

@@ -72,3 +72,12 @@ export function preloadRenderer3D(): Promise<unknown> {
   return import("./renderer.js");
 }
 
+
+/**
+ * Start fetching and parsing the Meshy models of the live scenes `films` while the level plays, so the scene finds them
+ * in the loader's cache. Without this the first one lands as a single long frame mid-scene (outpost-ops#396).
+ */
+export async function preloadLiveScenes(films: Iterable<string>): Promise<void> {
+  const ids = (await import("./scene/livemodels.js")).liveSceneModels(films);
+  if (ids.size) await (await import("./assets/meshy.js")).loadMeshy(undefined, ids, undefined, true);
+}

@@ -4,6 +4,7 @@ import {
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { loadMeshy, meshyCharacters, meshyRig, meshyScene } from "../assets/meshy.js";
+import { LIVE_SCENE_MODELS } from "./livemodels.js";
 import { heldInHand } from "./rigged.js";
 import { ART_M, FOV_DEG, PITCH_DEG, YAW_DEG } from "../units.js";
 import { SUN_OFS, lookGround } from "./environment.js";
@@ -944,11 +945,11 @@ const CAM_OUT = 2.0, CAM_BACK = 3.6, CAM_PITCH = (PITCH_DEG * Math.PI) / 180, CA
 const VALE_HELMET_TIP = Math.PI / 2;
 
 const SCENES: Readonly<Record<string, { models: readonly string[]; stage: (doc: Document, o: LiveSceneOptions, overlay: HTMLElement) => Staged; film?: boolean; game?: boolean }>> = {
-  chip_handoff: { models: ["unit.customer_sela.hi", "unit.player.hi", "res.currency.hi", "unit.customer_sela", "unit.customer", "unit.player", "res.currency"], stage: chipHandoff, film: true },
-  sela_arrival: { models: ["decor.buggy", "decor.buggy_wheel", "decor.buggy_wheel_l", "unit.customer_sela", "unit.customer"], stage: selaArrival, film: true },
-  warlord_fall: { models: ["hostile.boss_vale", "item.vale_head", "hostile.boss", "item.lieutenant_helmet", "prop.minigun"], stage: warlordFall, film: true, game: true },
-  empty_bays: { models: ["decor.stasis_pod", "decor.stasis_glass"], stage: emptyBays },
-  crash_log: { models: ["decor.stasis_pod", "decor.stasis_glass", "unit.player"], stage: crashLog },
+  chip_handoff: { models: LIVE_SCENE_MODELS.chip_handoff, stage: chipHandoff, film: true },
+  sela_arrival: { models: LIVE_SCENE_MODELS.sela_arrival, stage: selaArrival, film: true },
+  warlord_fall: { models: LIVE_SCENE_MODELS.warlord_fall, stage: warlordFall, film: true, game: true },
+  empty_bays: { models: LIVE_SCENE_MODELS.empty_bays, stage: emptyBays },
+  crash_log: { models: LIVE_SCENE_MODELS.crash_log, stage: crashLog },
 };
 
 export const LIVE_SCENES: readonly string[] = Object.keys(SCENES);

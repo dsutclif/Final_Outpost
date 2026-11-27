@@ -16,7 +16,7 @@ import { TIME_TARGET_STEPS, applyTimeTarget, normalizeTimeTargetPct } from "./ti
 import { webPlatform, type Platform } from "./platform.js";
 import { progressReport, reportProgress } from "./supply.js";
 import { chapters, isUnlocked, nextLevel, starText, starTotalOf } from "./progress.js";
-import { PROBE_SEC, autoTier, createRenderer, thumbnails, warm3D, webglAvailable, type GameRenderer, type Tier } from "./render.js";
+import { PROBE_SEC, autoTier, createRenderer, thumbnails, warm3D, warmFilms, webglAvailable, type GameRenderer, type Tier } from "./render.js";
 import { fetchRelease, type ReleaseInfo } from "./pwa.js";
 import { DEFAULT_PROGRESS, PROGRESS_EPOCH, type Progress, type ProgressMode, type SaveStore, type Settings } from "./save.js";
 import type { TelemetryQueue } from "./telemetry.js";
@@ -24,6 +24,7 @@ import { formatTicks, levelText } from "./text.js";
 import { TitleBackdrop } from "./title.js";
 import { FILM_VERSIONS, REPLAY_FILMS, cinematicFor, filmDue, playCinematic, type CinematicId } from "./cinematics.js";
 import { preloadCharacters } from "./preload.js";
+import { fallFilms } from "./storypreload.js";
 import { TITLE_VIDEO_HOLD_MS, createGate, type Gate } from "./gate.js";
 import { KilnCloud, StoryStage, directorFor, type StoryDirector } from "./story/index.js";
 import { KilnIntro, kilnLines } from "./kilnintro.js";
@@ -883,6 +884,8 @@ export class App {
     const sess = this.session;
     sess.director = this.storyDirector(sess, !!retryFrom);
     sess.stage = this.storyStage(sess);
+    // a film played over this level's own set loads its models now, not as one long frame when it first plays
+    warmFilms(fallFilms(this.skin.story?.levels[meta.id]));
     const openAt = retryFrom ? undefined : this.skin.story?.levels[meta.id]?.openAt;
     if (openAt) { sess.cam.x = openAt[0]; sess.cam.y = openAt[1]; sess.cam.follow = false; sess.renderer.sync(sim.state, 0, sess.cam); }
     this.introStep = 0;
