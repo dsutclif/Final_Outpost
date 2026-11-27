@@ -64,6 +64,8 @@ export type Outcome ="win" | "loss" | "unknown";
 export interface TuneRun {
   ts: string; engine: string; content: string; level: string; bot: string; knob?: string; dial: number; seed: number;
   outcome: Outcome; reason: string; extended: boolean; goalDone: boolean; endSec: number;
+  /** Seconds to the main goal (the run can go on past it for star objectives); null when the goal was never done. */
+  goalSec?: number | null;
   baseMin: number; baseMinByWave: number[]; wavesStarted: number; nWaves: number;
   /** Losses: the wave the base fell in (1-based) and the attacker HP still on the field / all attacker HP spawned so far. */
   lossWave: number | null; hpLeft: number | null; hpLeftShare: number | null; attackersLeft: number;
@@ -88,7 +90,7 @@ function playOnce(m: Record<string, any>, seed: number, clock: number): Omit<Tun
     },
   });
   return {
-    won: r.won, over: r.reason !== "budget", reason: r.reason, goalDone, endSec: Math.round(r.ticks / 30),
+    won: r.won, over: r.reason !== "budget", reason: r.reason, goalDone, endSec: Math.round(r.ticks / 30), goalSec: goalDone ? Math.round(r.goalTicks / 30) : null,
     baseMin: +baseMin.toFixed(3), baseMinByWave: byWave.map((x) => +x.toFixed(3)), wavesStarted: idx, nWaves,
     lossWave: r.won ? null : idx, hpLeft: r.won ? null : Math.round(hpLeft), hpLeftShare: r.won ? null : +(hpLeft / Math.max(1, hpSpawned)).toFixed(3), attackersLeft: left,
   };
@@ -151,7 +153,31 @@ function report(runs: TuneRun[]): string {
     lines.push("", "| dial | fitted win rate |", "|---|---|");
     for (const d of dials) lines.push(`| ${d} | ${(100 / (1 + Math.exp(f.k * (Math.log(d) - f.x50)))).toFixed(0)}% |`);
   }
+  const t = fitTime(runs);
+  const ds = [...new Set(runs.map((r) => r.dial))].sort((x, y) => x - y);
+  lines.push("", "Finish time (wins only, seconds to the main goal):", "", "| dial | wins | median s | min s | max s |", "|---|---|---|---|---|");
+  for (const d of ds) {
+    const ts = runs.filter((r) => r.dial === d && r.outcome === "win" && r.goalSec != null).map((r) => r.goalSec!).sort((a, b) => a - b);
+    lines.push(`| ${d} | ${ts.length} | ${ts.length ? ts[ts.length >> 1] : "-"} | ${ts[0] ?? "-"} | ${ts.at(-1) ?? "-"} |`);
+  }
+  if (t) lines.push("", `Time fit: seconds = ${t.s1.toFixed(0)} x dial^${t.b.toFixed(2)} (log-log least squares over ${t.n} wins, residual sd ${t.sd.toFixed(2)} in log). Built-size finish ${t.s1.toFixed(0)} s.`);
+  // largest dial at and below which no run stalled (the goal still fits the map)
+  let feasibleMaxDial = 0;
+  for (const d of ds) { if (runs.some((r) => r.dial === d && r.outcome === "unknown")) break; feasibleMaxDial = d; }
+  writeFileSync(`${outDir}/summary.json`, JSON.stringify({ level, bot: botName, knob, engine: ENGINE_VERSION, runs: runs.length, unknown: runs.filter((r) => r.outcome === "unknown").length, winFit: f, timeFit: t, feasibleMaxDial }, null, 1));
   return lines.join("\n") + "\n";
+}
+
+/** log(goalSec) = log(s1) + b log(dial) over wins: the finish-time curve; the dial for a target T seconds is (T / s1)^(1/b). */
+export function fitTime(runs: TuneRun[]): { s1: number; b: number; sd: number; n: number } | null {
+  const pts = runs.filter((r) => r.outcome === "win" && r.goalSec != null && r.goalSec > 0).map((r) => [Math.log(r.dial), Math.log(r.goalSec!)] as const);
+  if (pts.length < 4 || new Set(pts.map((p) => p[0])).size < 2) return null;
+  const n = pts.length, mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
+  let sxy = 0, sxx = 0;
+  for (const [x, y] of pts) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; }
+  const b = sxy / sxx, a = my - b * mx;
+  const sd = Math.sqrt(pts.reduce((acc, [x, y]) => acc + (y - a - b * x) ** 2, 0) / Math.max(1, n - 2));
+  return { s1: Math.exp(a), b, sd, n };
 }
 
 function readRuns(): TuneRun[] {
