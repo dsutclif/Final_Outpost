@@ -9,7 +9,7 @@ import { playBot, PROFILES } from "../packages/bots/src/index.js";
 // Runs dial values x shared seeds with one bot, records each run as a JSON line, then fits a logistic win-rate curve
 // against log(dial) and reports the dial at 50%, the 20-80% band and the undecided count.
 //   pnpm exec vite-node tools/tune-level.ts -- --level s1-L010 [--dials 0.5,0.63,0.79,1,1.26,1.59,2] [--seeds 5]
-//     [--bot average] [--out <dir>] [--fit-only]
+//     [--bot average] [--out <dir>] [--fit-only] [--seed-start 1]
 // Resume-safe: (dial, seed) pairs already in the runs file for this engine are skipped. Runs at idle priority, one process.
 // No run counts as a loss unless the base fell or the level's own fail fired. A run the clock ends is replayed with a 3x
 // clock; still open after that it is "unknown" and left out of the fit (never counted as a loss).
@@ -19,6 +19,7 @@ const level = opt("level", "s1-L010");
 const pack = level.split("-")[0]!;
 const dials = opt("dials", "0.5,0.63,0.79,1,1.26,1.59,2").split(",").map(Number);
 const seeds = Number(opt("seeds", "5"));
+const seedStart = Number(opt("seed-start", "1")); // fresh seeds for confirm runs (tune plan step 4)
 const botName = opt("bot", "average");
 const outDir = opt("out", `tune-data/${level}`);
 const runsFile = `${outDir}/runs.jsonl`;
@@ -195,7 +196,7 @@ async function main(): Promise<void> {
     const done = new Set(readRuns().map((r) => `${r.dial}|${r.seed}`));
     console.log(`tune ${level} bot ${botName} engine ${ENGINE_VERSION}: ${dials.length} dials x ${seeds} seeds, ${done.size} already done -> ${runsFile}`);
     // seed-major so a stop part-way still covers every dial
-    for (let seed = 1; seed <= seeds; seed++) for (const dial of dials) {
+    for (let seed = seedStart; seed < seedStart + seeds; seed++) for (const dial of dials) {
       if (done.has(`${dial}|${seed}`)) continue;
       const t0 = Date.now();
       const r = runOne(base, dial, seed);
