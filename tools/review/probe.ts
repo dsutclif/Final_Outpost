@@ -225,6 +225,16 @@ async function watchErrors(run: Run, levelId: string, shots: Shots, evidence: Ma
   }
 }
 
+
+/** Per-frame timeline (frame cost against sim tick, events and the story line on screen), written to <dir>/timeline.json with the 15 worst frames first. */
+function writeTimeline(dir: string, frames: readonly FrameRec[], lines: readonly { tick?: number; n: number; text: string }[] = []): void {
+  const lineAt = (tick: number) => { let cur: { n: number; text: string } | null = null; for (const l of lines) if (l.tick !== undefined && l.tick <= tick) cur = l; return cur ? `${cur.n}: ${cur.text.slice(0, 60)}` : ""; };
+  const rows = frames.map((f, i) => ({ i, tick: f.tick, cpu: Math.round(f.cpu * 10) / 10, step: Math.round(f.step * 10) / 10, ev: f.ev, last: f.last, line: lineAt(f.tick) }));
+  const worst = [...rows].sort((a, b) => b.cpu - a.cpu).slice(0, 15);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "timeline.json"), JSON.stringify({ worst, rows }));
+}
+
 // ------------------------------------------------------------------ a level on the bot
 
 async function playLevel(run: Run, levelId: string, a: Args, L: Limits, outDir: string, rel: string, result: LevelResult): Promise<void> {
@@ -295,6 +305,7 @@ async function playLevel(run: Run, levelId: string, a: Args, L: Limits, outDir: 
   // frame cost and errors close the level
   const { frames } = await page.evaluate(() => window.R.frames());
   result.frames = frameStats(frames, L);
+  writeTimeline(dir, frames);
   const inPage = await page.evaluate(() => window.R.errors());
   result.errors = [...new Set([...inPage, ...run.errors])].slice(0, 40);
   const end = (tick * 1000) / TPS + 1;
@@ -428,7 +439,7 @@ async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: st
   const shots = new Shots(page, dir, rel, L.shots.perStoryLevel);
   const tracker = new Tracker(levelId);
   const evidence = new Map<string, Evidence>();
-  const lines: { ms?: Record<string, number>; n: number; text: string; speaker: string | null; shot: string | null; heldTicks: number; gates: string[] }[] = [];
+  const lines: { tick?: number; ms?: Record<string, number>; n: number; text: string; speaker: string | null; shot: string | null; heldTicks: number; gates: string[] }[] = [];
   const extras: Record<string, unknown> = { lines, films: [] as unknown[] };
 
   // films first: what a live scene holds on its last frame, to set against the level's first
@@ -576,7 +587,7 @@ async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: st
       const matched = gatesFor(s.caption.text, gates);
       matched.forEach((g) => gateSeen.add(g));
       const shown = lines.map((l) => l.text);
-      const entry = { ms: tm, n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot, heldTicks: 0, gates: matched.map((g) => g.why ?? g.line) };
+      const entry = { tick: r.tick, ms: tm, n: lineNo, text: s.caption.text, speaker: s.caption.speaker, shot, heldTicks: 0, gates: matched.map((g) => g.why ?? g.line) };
       lines.push(entry);
       if (variant === "lose" && /won't last the night/.test(s.caption.text)) { await page.evaluate(() => window.R.drive("")); extras["variantAt"] = { line: lineNo, tick: r.tick }; }
       if (variant === "stall" && /Head east to the wreck/.test(s.caption.text)) stallArmed = true;
@@ -644,6 +655,7 @@ async function playStory(run: Run, jobId: string, a: Args, L: Limits, outDir: st
   extras["gatesReached"] = gates.filter((g) => gateSeen.has(g)).map((g) => g.line);
   const { frames } = await page.evaluate(() => window.R.frames());
   result.frames = frameStats(frames, L);
+  writeTimeline(dir, frames, lines);
   result.errors = [...new Set([...(await page.evaluate(() => window.R.errors())), ...run.errors])].slice(0, 40);
   tracker.observe(Date.now() + 1, errorHits(result.errors));
   // no fallback to the level-start picture: a finding gets the picture of its own moment, or none
