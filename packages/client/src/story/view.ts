@@ -250,7 +250,8 @@ export function createStoryView(shell: HTMLElement, opts: { dialogue?: string | 
       setTimeout(() => { if (goalCard.classList.contains("fly")) { goalCard.hidden = true; goalCard.classList.remove("fly"); } }, 450);
     },
     anchor(p, vw, vh) { dialogue?.anchor?.(p, vw, vh); },
-    onTap(fn) { tap = fn; tapCatch.hidden = !fn; },
+    // while a line waits on a tap the Help button is hidden: it sat over the bottom caption (KILN's terminal readout) on a phone
+    onTap(fn) { tap = fn; tapCatch.hidden = !fn; layer.closest(".app")?.classList.toggle("story-line-up", !!fn); },
     prompt(p, retry, other) {
       const go = text("button", "story-retry", p.retry), no = text("button", "story-other", p.other);
       go.onclick = retry;

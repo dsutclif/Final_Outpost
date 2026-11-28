@@ -95,6 +95,9 @@ export function healedGuard(r: ResidentState): void {
 
 /** A medic goes to the nearest downed guard and heals it in place; otherwise it waits by the med bay or the core. */
 export function medicStep(st: State, cp: Compiled, r: ResidentState, role: CompiledRole, out: SimEvent[]): void {
+  // once the patch-up has begun the medic stays kneeling beside him until he is on his feet (commanderHealable is false
+  // from then on, so she used to walk straight back home as the heal started; story level 5 only: commanderRules is opt-in)
+  if (r.target === "player" && st.player.down !== undefined && st.player.healT !== undefined) return;
   // the downed commander first: a medic beside him patches him up in place
   if (commanderHealable(st, cp) && (r.target === "player" || !st.residents.some((m) => m !== r && m.target === "player" && cp.roles[m.role]?.behavior === "medic"))) {
     r.target = "player";

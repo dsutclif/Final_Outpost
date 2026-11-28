@@ -19,6 +19,8 @@ export type StoryTrigger =
   | { goal: string; is: "done" | "failed"; after?: string }
   /** The player came within `r` world units (once the cue `after` has fired, when given); with `seen`, only while that place is also on screen, so a line that names it never plays before it can be seen. */
   | { near: StoryPlace; r: number; after?: string; seen?: boolean }
+  /** The commander's health fell to this many hit points or fewer while he is still on his feet. */
+  | { hpAtMost: number }
   /** `ticks` sim ticks after the cue `after` fired (from tick 0 without it). Sim time, so freezes don't count. */
   | { after?: string; ticks: number }
   /**

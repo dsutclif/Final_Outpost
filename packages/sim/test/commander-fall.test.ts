@@ -95,4 +95,19 @@ describe("commander modes", () => {
     expect(st.over).toBe(false);
     expect(ev.some((e) => e.t === "medic_heal" && e.resident === -1)).toBe(true);
   });
+
+  it("medic: she stays beside him for the whole heal, not walking home as it starts", () => {
+    const sim = make("medic"), K = sim.compiled.player, st = sim.state;
+    quiet(sim);
+    const m = st.residents.find((r) => sim.compiled.roles[r.role]?.behavior === "medic")!;
+    m.pos = { x: st.player.pos.x + 20 * FP, y: st.player.pos.y };
+    st.player.down = 0; st.player.hp = 3;
+    let far = 0;
+    idle(sim, K.knockTicks - 10, () => {
+      if (st.player.healT !== undefined && Math.hypot(m.pos.x - st.player.pos.x, m.pos.y - st.player.pos.y) > 60 * FP) far++;
+      return st.player.down === undefined;
+    });
+    expect(st.player.down).toBeUndefined();
+    expect(far).toBe(0);
+  });
 });

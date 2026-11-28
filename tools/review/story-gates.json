@@ -125,6 +125,8 @@
     { "line": "Good. Train one as a guard", "afterGoal": ["arrive"], "after": ["Two at the gate. Stand by it to let them in"], "why": "Okafor asks for a guard once the settlers are in." },
     { "line": "Hold them off until sunrise", "afterGoal": ["arrive"], "after": ["Good. Train one as a guard"], "why": "KILN sets the night's goal after the first guard is hired." },
     { "line": "Dust mites!", "after": ["Three are coming first"], "why": "Okafor warns of dust mites only after the raid begins." },
+    { "line": "You're hurt. Back off behind the wall", "after": ["Three are coming first"], "why": "The hurt hint plays only when the commander's health is low, which needs a raid." },
+    { "line": "You're down. Hold on", "after": ["Three are coming first"], "why": "The knocked-down hint plays only after a raid has knocked him down." },
     { "line": "You should have stayed asleep, Commander", "after": ["Three are coming first"], "why": "The lieutenant appears only after the raid begins." },
     { "line": "They're running. It's over for tonight", "after": ["Three are coming first"], "why": "KILN calls the raid over only after it began." },
     { "line": "But the signal hasn't stopped", "after": ["They're running. It's over for tonight"], "why": "KILN turns to the signal after the raid ends." },

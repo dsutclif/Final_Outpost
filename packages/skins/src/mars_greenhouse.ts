@@ -1549,6 +1549,9 @@ export const marsGreenhouse: Skin = {
           // too fast). Game time, so it holds through lines and the paused fall. A good run reaches the retreat at ~160 s
           // (light about -0.75 then), the rest finishes while the helmet is towed; slower runs simply arrive darker
           { on: { start: true }, do: [{ light: "ember", seconds: 200 }] },
+          // low health: say what to do about it (Doug, 2026-11-28). Rhee heals him once he is down; until then he can only keep clear of the raiders
+          { on: { hpAtMost: 5 }, unless: "dawn", ordered: true, do: [{ line: "You're hurt. Back off behind the wall, and if you go down, Rhee will come and patch you up.", who: "kiln" }] },
+          { on: { event: "downed" }, unless: "dawn", ordered: true, do: [{ line: "You're down. Hold on: Rhee is coming to patch you up.", who: "kiln" }] },
           // the helmet cannot be taken until KILN has said "They dropped something.", wherever the commander stands (the line lets it go)
           { on: { start: true }, do: [{ pickupHold: true }] },
           // safety: if the warlord never broke off (no retreat lines to wait for), the helmet is free at dawn
