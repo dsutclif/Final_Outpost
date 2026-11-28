@@ -3,7 +3,7 @@ import { content } from "../packages/content/src/index.js";
 import { LADDER, PROFILES, gapProfile } from "../packages/bots/src/index.js";
 import { judgmentShare, repin, s1Metrics, strategyGap } from "../packages/rater/src/index.js";
 import { applyDefendS1 } from "../packages/generator/src/defendS1.js";
-import { fitStrategyEtas, placeDefendGap, simBreak } from "../packages/generator/src/defendGap.js";
+import { fitStrategyEtas, placeDefendGap, simBreak, simBreakFit } from "../packages/generator/src/defendGap.js";
 import gen from "../packages/generator/data/generator.json";
 
 // Defend S4 proof (outpost-ops#273): re-place one manifest's waves with defendGap + the S1/S2 switches on (maxLive 2, gap 20, random
@@ -21,7 +21,7 @@ const t0 = Date.now();
 const useSim = args.includes("--sim");
 const etas = useSim || args.includes("--no-fit") ? undefined : fitStrategyEtas(m, content);
 if (etas) console.log(`eta_s ${JSON.stringify(etas.etas)}  sim break multipliers ${JSON.stringify(etas.multipliers)}  (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
-const gp = placeDefendGap(m, content, { cfg, target: val("target", 0.5), gap: val("gap", 20), warlords: 1, ...(etas ? { etas: etas.etas } : {}), ...(useSim ? { breakFn: (cut: any, k: number, s: any) => simBreak(cut, k, s, { lo: 0.25, hi: Number(val("hi", 4)), iterations: val("it", 4) }) } : {}) });
+const gp = placeDefendGap(m, content, { cfg, target: val("target", 0.5), gap: val("gap", 20), warlords: 1, ...(etas ? { etas: etas.etas } : {}), ...(useSim ? { breakFn: (cut: any, k: number, s: any) => args.includes("--fit-probe") ? simBreakFit(cut, k, s, { lo: 0.25, hi: Number(val("hi", 4)), seeds: val("probe-seeds", 3), points: val("points", 7) }) : simBreak(cut, k, s, { lo: 0.25, hi: Number(val("hi", 4)), iterations: val("it", 4) }) } : {}) });
 console.log(`${m["id"]}  placed ${gp.waves.length} waves  ok ${gp.ok} ${gp.reason ?? ""}  crossings ${gp.crossings}  ratioShare ${gp.ratioShare.toFixed(2)}`);
 for (const w of gp.waves) console.log(`  w${w.k} t ${w.t}  hp ${w.hp.toFixed(0)}  V ${Object.entries(w.V).map(([s, v]) => `${s[0]} ${v.toFixed(0)}`).join(" ")}  best ${w.best}  position ${w.position === null ? "-" : w.position.toFixed(2)}  counts ${JSON.stringify((gp.manifest["waves"] as any[])[w.k].counts)}`);
 for (const c of gp.compare ?? []) console.log(`  w${c.k} model mult ${JSON.stringify(Object.fromEntries(Object.entries(c.model).map(([s, v]) => [s[0], +v.toFixed(2)])))}  probe mult ${JSON.stringify(Object.fromEntries(Object.entries(c.probe).map(([s, v]) => [s[0], +v.toFixed(2)])))}`);

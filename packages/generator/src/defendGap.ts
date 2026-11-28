@@ -222,3 +222,35 @@ export function simBreak(cut: Json, k: number, s: ModelStrategy, o: { seed?: num
   for (let i = 0; i < (o.iterations ?? 6); i++) { const mid = Math.sqrt(lo * hi); if (won(mid)) lo = mid; else hi = mid; }
   return lo;
 }
+
+/** Multi-seed sim probe (2026-11-28): the single-seed bisection in `simBreak` was noisy and non-monotone (S4 proof
+ *  blocker). Plays a geometric grid of multipliers x shared seeds, makes the win share non-increasing in the
+ *  multiplier (pool-adjacent violators), and returns the multiplier where it crosses 1/2 (log-linear between grid
+ *  points). Returns `lo` when even the smallest wave loses half the time, `hi` when the largest still holds. */
+export function simBreakFit(cut: Json, k: number, s: ModelStrategy, o: { seeds?: number; lo?: number; hi?: number; points?: number } = {}): number {
+  const base = JSON.parse(JSON.stringify(repin(cut))) as Json;
+  const tpl = { ...(base["waves"][k]["counts"] as Record<string, number>) };
+  if ((base["goal"] as Json | undefined)?.["type"] !== "survive") { const secs = Math.round(Number(base["waves"][k]["t"]) + 90); base["goal"] = { type: "survive", seconds: secs }; for (const ob of (base["objectives"] ?? []) as Json[]) if (ob["id"] === "main") { ob["kind"] = "survive"; ob["params"] = { seconds: secs }; } }
+  const bossId = "hostile.boss", profile = strategyProfile(s as Strategy);
+  const lo = o.lo ?? 0.25, hi = o.hi ?? 4, n = Math.max(3, o.points ?? 7), seeds = Math.max(1, o.seeds ?? 3);
+  const grid = Array.from({ length: n }, (_, i) => lo * Math.pow(hi / lo, i / (n - 1)));
+  const share = grid.map((m) => {
+    let w = 0;
+    for (let sd = 1; sd <= seeds; sd++) {
+      const x = JSON.parse(JSON.stringify(base)) as Json, counts: Record<string, number> = {};
+      for (const [id, c] of Object.entries(tpl)) if (c > 0) counts[id] = id === bossId ? c : Math.max(1, Math.round(c * m));
+      x["waves"][k]["counts"] = counts;
+      if (playBot(x, profile, sd).won) w++;
+    }
+    return w / seeds;
+  });
+  // isotonic (non-increasing) fit by pool-adjacent violators
+  const blocks: { v: number; n: number }[] = [];
+  for (const v of share) { blocks.push({ v, n: 1 }); while (blocks.length > 1 && blocks.at(-2)!.v < blocks.at(-1)!.v) { const b = blocks.pop()!, a = blocks.pop()!; blocks.push({ v: (a.v * a.n + b.v * b.n) / (a.n + b.n), n: a.n + b.n }); } }
+  const iso = blocks.flatMap((b) => Array(b.n).fill(b.v) as number[]);
+  if (iso[0]! < 0.5) return lo;
+  const j = iso.findIndex((v) => v < 0.5);
+  if (j < 0) return hi;
+  const f = (iso[j - 1]! - 0.5) / Math.max(1e-9, iso[j - 1]! - iso[j]!);
+  return Math.exp(Math.log(grid[j - 1]!) + f * Math.log(grid[j]! / grid[j - 1]!));
+}
