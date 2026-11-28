@@ -54,6 +54,8 @@ export interface StoryHost {
   cam: BeatCamera;
   /** Where an entity is, world units; null if the manifest has no such entity. */
   entityAt(id: string): { x: number; y: number } | null;
+  /** True for a capture (pod) no longer lying out to be taken: towed, opened, lost or gone. The arrows then fall back to the guide's own pick. */
+  entityGone?(id: string): boolean;
   /** Play a film or live scene; resolves when it ends. Unknown ids resolve at once. */
   film(id: string): Promise<void>;
   /** Play a live scene in a small frame over play, without waiting for it. */
@@ -186,7 +188,7 @@ export class StoryDirector {
   private active: Active | null = null;
   private st: State | null = null;
   /** The last `guide` action's target: what the arrows do when no guide rule matches. */
-  private cueGuide: { off: boolean; to: { x: number; y: number } | null };
+  private cueGuide: { off: boolean; to: StoryPlace | null };
   /** Lines already sent through an automatic stage step (each is staged once). */
   private readonly autoStaged = new WeakSet<object>();
   private explicitFreeze = false;
@@ -521,6 +523,13 @@ export class StoryDirector {
     return "at" in p ? { x: p.at[0], y: p.at[1] } : this.host.entityAt(p.entity);
   }
 
+  /** Where the arrows go for a place, or null (the guide picks) when it names a pod no longer out there. */
+  private guidePlace(p: StoryPlace | null): { x: number; y: number } | null {
+    if (!p) return null;
+    if ("entity" in p && this.host.entityGone?.(p.entity)) return null;
+    return this.place(p);
+  }
+
   // ------------------------------------------------------------------ the action queue
 
   private followPlayer(): void {
@@ -647,8 +656,8 @@ export class StoryDirector {
       const g = a.edgeGlow ? this.place(a.edgeGlow) : null;
       this.world = { ...this.world, glow: g && a.edgeGlow ? { ...g, ...(a.edgeGlow.size !== undefined ? { size: a.edgeGlow.size } : {}), ...(a.edgeGlow.strength !== undefined ? { strength: a.edgeGlow.strength } : {}), ...(a.edgeGlow.arrow ? { arrow: true } : {}) } : null };
     } else if ("guide" in a) {
-      this.cueGuide = { off: !a.guide, to: a.guide && a.to ? this.place(a.to) : null };
-      this.world = { ...this.world, guideOff: this.cueGuide.off, guideTo: this.cueGuide.to };
+      this.cueGuide = { off: !a.guide, to: a.guide && a.to ? a.to : null };
+      this.world = { ...this.world, guideOff: this.cueGuide.off, guideTo: this.guidePlace(this.cueGuide.to) };
     }
   }
 
@@ -756,11 +765,10 @@ export class StoryDirector {
 
   /** Each frame the first matching guide rule sets the arrows, whatever the cues did last; none matching leaves the cue's choice. */
   private stepGuideRules(st: State): void {
-    const rules = this.level.guideRules;
-    if (!rules?.length) return;
-    const r = rules.find((x) => x.when.every((c) => this.cond(c, st)));
+    const r = this.level.guideRules?.find((x) => x.when.every((c) => this.cond(c, st)));
     const off = r ? !!r.off : this.cueGuide.off;
-    const to = r ? (r.off || !r.to ? null : this.place(r.to)) : this.cueGuide.to;
+    // re-resolved every frame: a pod the arrow named may be towed or gone by now, and then the guide's own pick takes over
+    const to = r ? (r.off || !r.to ? null : this.guidePlace(r.to)) : this.guidePlace(this.cueGuide.to);
     const w = this.world;
     if (w.guideOff === off && w.guideTo?.x === to?.x && w.guideTo?.y === to?.y) return;
     this.world = { ...w, guideOff: off, guideTo: to };

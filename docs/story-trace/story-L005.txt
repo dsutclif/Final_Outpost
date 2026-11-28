@@ -1,7 +1,5 @@
 # story trace story-L005 seed 1 (good bot, phone 390x845, lines tapped after 2 s)
-# outcome: won; failures: 2
-#   (g) tick 4903 t 198.2 cue #14: commander stands inside a built struct.landmark (at 712,730; its body x 585-755, y 632-768) while a line is up: "You should have stayed asleep, Commander"
-#   (g) tick 4903 t 198.2 cue #14: lieutenant stands inside a built struct.landmark (at 704,753; its body x 585-755, y 632-768) while a line is up: "You should have stayed asleep, Commander"
+# outcome: won; failures: 0
 # tick   seconds  cue              what        detail
      0      0.0  #0               cue         start=true
      0      0.0  #0               light       
@@ -65,46 +63,43 @@
   4602    185.8  #20              arrow       off
   4603    185.8  #20              arrow       story@555,840
   4903    195.8  #14              cue         hostile=hostile.boss r=5000 seen=true
-  4903    195.8  #14              stage       lieutenant
-  4903    195.8  #14              arrow       off
-  4903    198.2  #14              line        lieutenant: You should have stayed asleep, Commander. [at 704,753 81 from centre, in frame; cmdr 712,730]
-  4903    198.2  #14              FAIL(g)     commander stands inside a built struct.landmark (at 712,730; its body x 585-755, y 632-768) while a line is up: "You should have stayed asleep, Commander"
-  4903    198.2  #14              FAIL(g)     lieutenant stands inside a built struct.landmark (at 704,753; its body x 585-755, y 632-768) while a line is up: "You should have stayed asleep, Commander"
-  4903    198.2  #14              held        2.3 s (stage)
-  4903    200.2  #14              arrow       story@555,840
-  4916    200.6  fall             cue         event=retreated
-  4916    200.6  fall             fall        hostile.boss
-  4916    200.6  dawn             cue         goal=hold is=done
-  4916    200.6  dawn             guide_cue   true {"entity":"helmet"}
-  4916    200.6  dawn             objective   hold done
-  4916    200.6  dawn             arrow       off
-  4916    206.6  dawn             arrow       story@866,739
-  5011    209.7  retreat          cue         after=fall ticks=95
-  5011    209.7  retreat          ridge       
-  5011    209.7  retreat          guide_cue   true {"entity":"helmet"}
-  5011    209.7  retreat          dots        
-  5011    209.7  retreat          line        kiln: They're running. It's over for tonight.
-  5011    209.7  retreat          arrow       off
-  5011    211.7  retreat          line        kiln: But the signal hasn't stopped. That was never them.
-  5011    213.7  retreat          arrow       story@866,739
-  5066    215.5  #19              cue         after=dawn ticks=150
-  5066    215.5  #19              dots        
-  5112    217.1  #17              cue         near={"entity":"helmet"} r=100 after=retreat seen=true
-  5112    217.1  #17              line        kiln: They dropped something.
-  5112    217.1  #17              arrow       off
-  5112    219.1  #17              pickupHold  
-  5112    219.1  #17              arrow       story@866,739
-  5126    219.5  #21              cue         event=captured
-  5126    219.5  #21              dotsOff     
-  5126    219.5  #21              kneel       
-  5126    219.5  #21              objective   main done
-  5126    219.5  #21              arrow       off
-  5126    225.5  #21              film        helmet_reveal
-  5126    231.5  #21              line        commander: Vale? [at 854,745 67 from centre, in frame; cmdr 854,745]
-  5126    233.5  #21              light       
-  5126    233.5  #21              wait        4.5
-  5126    233.5  #21              arrow       story@866,739
-  5212    236.4  #21              objective   train done
-  5212    236.4  #21              level_end   won (goal)
-  5212    237.9  #21              result_held the result waits for the story queue
-  5212    238.0  #21              result      shown
+  4903    195.8  #14              wait        2.5
+  4916    196.3  fall             cue         event=retreated
+  4916    196.3  dawn             cue         goal=hold is=done
+  4916    196.3  dawn             guide_cue   true {"entity":"helmet"}
+  4916    196.3  dawn             objective   hold done
+  4916    196.3  dawn             arrow       story@866,739
+  4978    198.3  #14              stage       lieutenant
+  4978    198.3  #14              arrow       off
+  4978    201.9  #14              line        lieutenant: You should have stayed asleep, Commander. [at 524,957 106 from centre, in frame; cmdr 533,936]
+  4978    201.9  #14              held        3.5 s (stage)
+  4978    203.9  fall             fall        hostile.boss
+  4978    209.9  fall             arrow       story@866,739
+  5011    210.9  retreat          cue         after=fall ticks=95
+  5011    210.9  retreat          ridge       
+  5011    210.9  retreat          guide_cue   true {"entity":"helmet"}
+  5011    210.9  retreat          dots        
+  5011    210.9  retreat          line        kiln: They're running. It's over for tonight.
+  5011    210.9  retreat          arrow       off
+  5011    212.9  retreat          line        kiln: But the signal hasn't stopped. That was never them.
+  5011    214.9  retreat          arrow       story@866,739
+  5066    216.8  #19              cue         after=dawn ticks=150
+  5066    216.8  #19              dots        
+  5112    218.3  #17              cue         near={"entity":"helmet"} r=100 after=retreat seen=true
+  5112    218.3  #17              line        kiln: They dropped something.
+  5112    218.3  #17              arrow       off
+  5112    220.3  #17              pickupHold  
+  5112    220.3  #17              arrow       story@866,739
+  5126    220.7  #21              cue         event=captured
+  5126    220.7  #21              dotsOff     
+  5126    220.7  #21              kneel       
+  5126    220.7  #21              objective   main done
+  5126    220.7  #21              arrow       off
+  5126    226.7  #21              film        helmet_reveal
+  5126    232.7  #21              line        commander: Vale? [at 854,745 67 from centre, in frame; cmdr 854,745]
+  5126    234.7  #21              light       
+  5126    234.7  #21              wait        4.5
+  5212    237.6  #21              objective   train done
+  5212    237.6  #21              level_end   won (goal)
+  5212    239.1  #21              result_held the result waits for the story queue
+  5212    239.2  #21              result      shown

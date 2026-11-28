@@ -49,8 +49,8 @@
    "type": "node.fuel_deposit",
    "id": "cell2",
    "at": [
-    452,
-    362
+    330,
+    315
    ],
    "stock": 3
   },
@@ -68,8 +68,8 @@
    "type": "zone.blocked",
    "id": "rocks2",
    "rect": [
-    416,
-    326,
+    294,
+    279,
     72,
     72
    ]

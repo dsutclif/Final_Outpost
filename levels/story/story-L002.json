@@ -479,10 +479,10 @@
    "type": "capture.recruit_container",
    "id": "pod_pip",
    "at": [
-    580,
-    455
+    350,
+    550
    ],
-   "freeze": 160,
+   "freeze": 110,
    "joins": {
     "role": "role.supplier",
     "from": "node.fuel_scrap",
@@ -493,8 +493,8 @@
    "type": "capture.recruit_container",
    "id": "pod_rhee",
    "at": [
-    660,
-    520
+    670,
+    500
    ],
    "freeze": 160,
    "joins": {
@@ -517,10 +517,10 @@
    "type": "capture.recruit_container",
    "id": "pod_tam",
    "at": [
-    220,
-    610
+    610,
+    480
    ],
-   "freeze": 110
+   "freeze": 160
   },
   {
    "type": "capture.recruit_container",

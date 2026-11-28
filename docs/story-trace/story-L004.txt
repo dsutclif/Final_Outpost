@@ -1,6 +1,5 @@
 # story trace story-L004 seed 1 (good bot, phone 390x845, lines tapped after 2 s)
-# outcome: won; failures: 1
-#   (a) tick 0 t 2.2 cue #1: buggy parks at 795,805 partly out of frame (screen 349,603, on the beat target 349,603, of 390x845; camera 644,744)
+# outcome: won; failures: 0
 # tick   seconds  cue              what        detail
      0      0.0  #0               cue         start=true
      0      0.0  #0               light       
@@ -9,10 +8,9 @@
      0      0.0  #0               spiritFollow 
      0      0.0  #1               cue         start=true
      0      0.0  #1               walk        rhee -> {"at":[630,790]}
-     0      0.0  #1               vehicle     buggy drives 1000,865 > 880,825 > 795,805 in 2.2s
+     0      0.0  #1               vehicle     buggy drives 1000,865 > 880,825 > 765,805 in 2.2s
      0      0.0  #1               arrow       off
-     0      2.2  #1               vehicle_parked buggy at 795,805 screen 349,603 of 390x845 NOT FULLY IN FRAME
-     0      2.2  #1               FAIL(a)     buggy parks at 795,805 partly out of frame (screen 349,603, on the beat target 349,603, of 390x845; camera 644,744)
+     0      2.2  #1               vehicle_parked buggy at 765,805 screen 297,577 of 390x845
      0      4.0  #1               line        commander: KILN. Is it true? Eleven years? [at 670,770 37 from centre, in frame; cmdr 670,770]
      0      4.0  #1               held        4.0 s (stage)
      0      6.0  #1               spirit      
@@ -31,8 +29,8 @@
      0     26.7  #1               line        rhee: Then we'll learn to run things on our own. We need that box to know wh [at 630,790 48 from centre, in frame; cmdr 670,770]
      0     28.7  #1               walk        rhee -> false
      0     28.7  #1               stage       sela
-     0     28.7  #1               line        sela: Storm season's close. The towns will pay well for hot meals. [at 795,805 163 from centre, in frame; cmdr 670,770]
-     0     30.7  #1               line        sela: I've brought three hands who want steady work. They're at your gate. [at 795,805 163 from centre, in frame; cmdr 670,770]
+     0     28.7  #1               line        sela: Storm season's close. The towns will pay well for hot meals. [at 765,805 136 from centre, in frame; cmdr 670,770]
+     0     30.7  #1               line        sela: I've brought three hands who want steady work. They're at your gate. [at 765,805 136 from centre, in frame; cmdr 670,770]
      0     32.8  #1               line        kiln: Stand by the gate to let them in.
      0     34.8  #1               goal        arrive
      0     34.8  #1               guide_cue   true {"entity":"gate"}

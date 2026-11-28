@@ -1002,28 +1002,29 @@ export const marsGreenhouse: Skin = {
             { line: "Loop a pod and your tow line catches. The tally over your head fills a slot for every pod in tow.", who: "kiln" },
             { line: "Two pods came down close together. Bring them both in one trip.", who: "kiln" },
           ] },
-          // Arrows, pod to pod (interim until story guide rules land): each pod coming home moves them to the next pod still out.
-          // Order Pip, Rhee, Okafor, Tam, then the lander pod (hidden until the pair is home). The ids let a cue skip a pod
-          // already home, so the arrows never point at a pod in the heat or at the hidden pod, nor switch off while one is out. Once the
-          // last pod in this order is home the guide's own pick takes over (any pod still out, towed in a different pairing).
-          // Hooking a pod moves the arrows on: Pip's pod hooked, they point at the pair's next pod; any other pod hooked, they lead
-          // home to the heat, so two in tow never leaves them on a starting spot (outpost-ops#393).
-          { on: { event: "captured", match: { capture: 0 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
-          { on: { event: "captured", match: { capture: 1 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
+          // Arrows, pod to pod: the order is Pip's pod (nearest, alone), then the pair (Rhee's and Tam's, side by side), then Okafor's,
+          // then the lander pod (hidden until the pair is home). A pod hooked or released moves the arrows to the next one out; a pod that is
+          // towed, opened or gone is dropped by the director, so the arrows fall back to the guide's own pick instead of pointing at an
+          // empty spot (outpost-ops#442). Hooking any pod leads home to the heat, except the first of the pair, which points at its partner.
+          { on: { event: "captured", match: { capture: 0 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
+          { on: { event: "captured", match: { capture: 1 } }, unless: "allHome", do: [{ guide: true, to: { entity: "pod_tam" } }] },
+          { on: { event: "captured", match: { capture: 3 } }, unless: "allHome", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
           { on: { event: "captured", match: { capture: 2 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
-          { on: { event: "captured", match: { capture: 3 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
           { on: { event: "captured", match: { capture: 4 } }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
           { on: { event: "joined", match: { capture: 0 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
-          { on: { event: "joined", match: { capture: 1 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_okafor" } }] },
           { on: { event: "joined", match: { capture: 2 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
-          { id: "pairDone", on: { goal: "pair", is: "done" }, unless: "tamHome", do: [{ guide: true, to: { entity: "pod_tam" } }] },
-          { id: "tamHome", on: { event: "released", match: { capture: 3 } }, do: [] },
+          { on: { event: "joined", match: { capture: 1 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_tam" } }] },
+          { on: { event: "released", match: { capture: 3 } }, unless: "pairDone", do: [{ guide: true, to: { entity: "pod_rhee" } }] },
+          { id: "pairDone", on: { goal: "pair", is: "done" }, unless: "allHome", do: [{ guide: true, to: { entity: "core" } }] },
+          { id: "okaHome", on: { event: "released", match: { capture: 2 } }, do: [] },
           { id: "oldHome", on: { event: "pod_home", match: { decoy: true } }, do: [] },
-          { on: { event: "capture_revealed", after: "tamHome" }, unless: "allHome", do: [{ guide: true, to: { entity: "pod_old" } }] },
-          { on: { event: "released", match: { capture: 3 }, after: "pairDone" }, unless: "oldHome", do: [{ guide: true, to: { entity: "pod_old" } }] },
-          { on: { event: "released", match: { capture: 3 }, after: "oldHome" }, unless: "allHome", do: [{ guide: true }] },
-          { on: { event: "pod_home", match: { decoy: true } }, unless: "tamHome", do: [{ guide: true, to: { entity: "pod_tam" } }] },
-          { on: { event: "pod_home", match: { decoy: true }, after: "tamHome" }, do: [{ guide: true }] },
+          { on: { event: "joined", match: { capture: 1 }, after: "pairDone" }, unless: "okaHome", do: [{ guide: true, to: { entity: "pod_okafor" } }] },
+          { on: { event: "released", match: { capture: 3 }, after: "pairDone" }, unless: "okaHome", do: [{ guide: true, to: { entity: "pod_okafor" } }] },
+          { on: { event: "capture_revealed", after: "okaHome" }, unless: "allHome", do: [{ guide: true, to: { entity: "pod_old" } }] },
+          { on: { event: "released", match: { capture: 2 }, after: "pairDone" }, unless: "oldHome", do: [{ guide: true, to: { entity: "pod_old" } }] },
+          { on: { event: "released", match: { capture: 2 }, after: "oldHome" }, unless: "allHome", do: [{ guide: true }] },
+          { on: { event: "pod_home", match: { decoy: true } }, unless: "okaHome", do: [{ guide: true, to: { entity: "pod_okafor" } }] },
+          { on: { event: "pod_home", match: { decoy: true }, after: "okaHome" }, do: [{ guide: true }] },
           { on: { event: "joined", match: { capture: 0 } }, do: [
             { crew: "Boss! Tell me this is the landing site. No? Thought not. Where is everyone?", who: "pip" },
             { line: "Scattered across the plain, and freezing. Can you keep the reactor fed while I bring them in?", who: "commander" },
@@ -1351,7 +1352,7 @@ export const marsGreenhouse: Skin = {
           ] },
           // no opening camera move; the camera looks east to the wreck only when KILN names the recorder
           { on: { start: true }, ordered: true, do: [
-            { vehicle: "buggy", path: [{ at: [1000, 865] }, { at: [880, 825] }, { at: [795, 805] }], seconds: 2.2, lights: true, rider: "sela", parked: true },
+            { vehicle: "buggy", path: [{ at: [1000, 865] }, { at: [880, 825] }, { at: [765, 805] }], seconds: 2.2, lights: true, rider: "sela", parked: true },
             // Rhee stands beside the commander before she speaks (Doug: she is on screen for her lines)
             { walk: "rhee", to: { at: [630, 790] }, arrive: true },
             { line: "KILN. Is it true? Eleven years?", who: "commander" },
@@ -1553,7 +1554,7 @@ export const marsGreenhouse: Skin = {
           // far pad: a nearby kill never let the line play), as they come in among the raiders
           { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, ordered: true, do: [{ stage: "okafor", by: [-15, -100] }, { line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
           // as soon as the warlord is on screen, not when it reaches the commander (Doug, 2026-11-27); it spawns beyond the map's edge
-          { on: { hostile: "hostile.boss", r: 5000, seen: true }, ordered: true, do: [{ stage: "lieutenant" }, { line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
+          { on: { hostile: "hostile.boss", r: 5000, seen: true }, ordered: true, do: [{ wait: 2.5 }, { stage: "lieutenant" }, { line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
             // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up and runs (S32),
             // filmed in the level with play paused (Doug, 2026-11-08); the live scene stands in without the models.

@@ -134,6 +134,13 @@ export async function traceStory(levelId: string, manifestIn: unknown, opts: Tra
       if (e?.at) return { x: e.at[0]!, y: e.at[1]! };
       return e?.rect ? { x: e.rect[0]! + e.rect[2]! / 2, y: e.rect[1]! + e.rect[3]! / 2 } : null;
     },
+    entityGone: (eid) => {
+      const ents = manifest.entities;
+      const e = ents.find((x) => x.id === eid);
+      if (!e?.type.startsWith("capture.")) return false;
+      const c = st.captures.find((x) => x.id === ents.filter((y) => y.type.startsWith("capture.")).indexOf(e));
+      return !c || c.state === "towed" || c.state === "releasing";
+    },
     film: (f) => later("film", f),
     fall: (o) => later("fall", o.kind),
     kneel: () => later("kneel", ""),

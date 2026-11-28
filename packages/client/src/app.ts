@@ -5,7 +5,7 @@ import { getSkin, levelTitle, nameOf, purposeOf, uiText, type Skin } from "@fo/s
 import { Coach, toWorld } from "./coach.js";
 import { isNew, nearbyPassive, touchedBy } from "./discovery.js";
 import { Haptics, Synth } from "./feedback.js";
-import { Guide, StuckTimer, type GuideTarget } from "./guide.js";
+import { Guide, StuckTimer, towGroup, towLoopPath, type GuideTarget } from "./guide.js";
 import { iconSvg, liveObjectives } from "./objectives.js";
 import { GoalHud, alertMarks, alertOf, goalIcon, goalTokens, heatOf, type Alert } from "./goalhud.js";
 import { InputController } from "./input.js";
@@ -939,6 +939,13 @@ export class App {
         if (e?.at) return { x: e.at[0]!, y: e.at[1]! };
         return e?.rect ? { x: e.rect[0]! + e.rect[2]! / 2, y: e.rect[1]! + e.rect[3]! / 2 } : null;
       },
+      entityGone: (eid) => {
+        const ents = s.manifest.entities as unknown as { id?: string; type: string }[];
+        const e = ents.find((x) => x.id === eid);
+        if (!e?.type.startsWith("capture.")) return false;
+        const c = s.sim.state.captures.find((x) => x.id === ents.filter((y) => y.type.startsWith("capture.")).indexOf(e));
+        return !c || c.state === "towed" || c.state === "releasing";
+      },
       film: async (f) => { if (filmDue(f, this.progress.cinematics)) await this.cinematic(f); },
       // filmed in the level, every time (it is play, not a film); the film stands in when the models are missing
       fall: async (o) => {
@@ -1481,13 +1488,21 @@ export class App {
     void Guide.create(s.manifest, s.sim.compiled).then((g) => { if (this.session === s) s.guide = g; });
   }
 
+  /** The walk a story arrow draws: straight to the place, and once around a pod lying there, as the default guide does (outpost-ops#441). */
+  private storyPath(s: Session, to: { x: number; y: number }): { x: number; y: number }[] {
+    const pl = s.sim.state.player.pos, hero = { x: pl.x / FP, y: pl.y / FP };
+    const idle = s.sim.state.captures.filter((c) => c.state === "idle" && !c.pickup).map((c) => ({ x: c.pos.x / FP, y: c.pos.y / FP }));
+    const pod = idle.find((q) => Math.hypot(q.x - to.x, q.y - to.y) < 4);
+    return pod ? towLoopPath([hero, to], hero, pod, towGroup(idle, pod)) : [hero, to];
+  }
+
   private updateCoach(s: Session): void {
     const mark = s.coach.update(s.sim.state, s.sim.compiled);
     const stuck = this.settings.stuckArrow && s.stuck.stuck(s.sim.state);
     // a story can send the arrows to a place of its own (level 1: the light), with no coach marks meanwhile
     const to = s.director && !s.director.world.guideOff ? s.director.world.guideTo : null;
     const pl = s.sim.state.player.pos;
-    s.guideTarget = to && !s.ended ? { key: "story.to", at: to, text: "", kind: "walk", path: [{ x: pl.x / FP, y: pl.y / FP }, to] }
+    s.guideTarget = to && !s.ended ? { key: "story.to", at: to, text: "", kind: "walk", path: this.storyPath(s, to) }
       : (s.guideOn || stuck) && s.guide && !s.ended && !s.director?.world.guideOff ? s.guide.update(s.sim.state, this.skin) : null;
     s.renderer.setGuide(s.guideTarget);
     if (!mark || to || s.director?.world.guideOff || s.director?.busy) { s.renderer.setCoach(null); return; }

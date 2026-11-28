@@ -64,7 +64,8 @@ const mid = (a: Vec, b: Vec): Vec => ({ x: Math.round((a.x + b.x) / 2), y: Math.
 export const COACH_RULES: readonly CoachRule[] = [
   {
     id: "hazard_stock", modules: ["hazard_events"], times: 1,
-    target: (s, cp) => (s.hazard.phase === "warning" && s.core.fuel < fuelCap(s, cp) * 0.8 ? s.core.pos : null),
+    // empty-handed, the mark goes to the ore first; the reactor only once there is something to put in it (outpost-ops#439)
+    target: (s, cp) => (s.hazard.phase === "warning" && s.core.fuel < fuelCap(s, cp) * 0.8 ? (carries(s, fuelRes(cp)) ? s.core.pos : nodeFor(s, cp, fuelRes(cp))) : null),
     done: (e) => e.t === "hazard_start",
   },
   {

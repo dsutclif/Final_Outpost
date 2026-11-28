@@ -15,80 +15,83 @@
      0      6.1  #1               line        kiln: Loop a pod and your tow line catches. The tally over your head fills a
      0      8.1  #1               line        kiln: Two pods came down close together. Bring them both in one trip.
      0     10.1  -                goal_card   Tow the nearest pod into the heat
-     0     12.1  -                arrow       story@580,455
-   103     15.5  #5               cue         event=captured match={"capture":3}
-   103     15.5  #5               guide_cue   true {"entity":"core"}
-   103     15.5  #5               arrow       story@330,320
-   221     19.4  #2               cue         event=captured match={"capture":0}
-   221     19.4  #2               guide_cue   true {"entity":"pod_rhee"}
-   221     19.4  #2               arrow       story@660,520
-   281     21.4  #3               cue         event=captured match={"capture":1}
-   281     21.4  #3               guide_cue   true {"entity":"core"}
-   281     21.4  #3               arrow       story@330,320
-   367     24.3  pairDone         cue         goal=pair is=done
-   367     24.3  pairDone         guide_cue   true {"entity":"pod_tam"}
-   367     24.3  #21              cue         goal=pair is=done
-   367     24.3  #21              camera      {"to":{"entity":"pod_old"},"pan":0.8,"hold":6,"back":0.7,"freeze":false,"stay":true}
-   367     24.3  #21              wait        6
-   367     24.3  #21              objective   pair done
-   367     24.3  #21              arrow       story@409,369
-   383     24.8  #21              line        kiln: One more out there. A fifth pod. It's ours, the lander's escape pod, b
-   383     24.8  #21              arrow       off
-   383     26.9  #21              wait        7
-   383     26.9  #21              arrow       story@409,369
-   412     27.8  tamHome          cue         event=released match={"capture":3}
-   412     27.8  #14              cue         event=released match={"capture":3} after=pairDone
-   412     27.8  #14              guide_cue   true {"entity":"pod_old"}
-   412     27.8  #22              cue         event=released match={"capture":3}
-   412     27.8  #14              objective   first done
-   412     27.8  #14              arrow       story@790,360
-   413     27.8  #18              cue         event=joined match={"capture":0}
-   414     27.9  #19              cue         event=joined match={"capture":1}
-   463     29.5  #4               cue         event=captured match={"capture":2}
-   463     29.5  #4               guide_cue   true {"entity":"core"}
-   463     29.5  #4               arrow       story@330,320
-   568     33.0  #6               cue         event=captured match={"capture":4}
-   568     33.0  #6               guide_cue   true {"entity":"core"}
-   593     33.9  #21              line        commander: Then I'll bring in all five. [at 680,371 23 from centre, in frame; cmdr 680,371]
-   593     33.9  #21              arrow       off
-   593     35.9  #21              goal        main
-   593     35.9  #22              stage       tam
-   593     37.7  #22              line        tam: So this is the new world. Bit cold. Give me something to do. [at 656,393 47 from centre, in frame; cmdr 680,371]
-   593     37.7  #22              held        1.8 s (stage)
-   593     39.7  #22              line        commander: Soon. We'll need a grow dome, and someone to run it. [at 680,371 34 from centre, in frame; cmdr 680,371]
-   593     41.7  #18              stage       pip
-   593     43.2  #18              line        pip: Boss! Tell me this is the landing site. No? Thought not. Where is ever [at 656,394 48 from centre, in frame; cmdr 680,371]
-   593     43.2  #18              held        1.4 s (stage)
-   593     45.2  #18              line        commander: Scattered across the plain, and freezing. Can you keep the reactor fed [at 680,371 34 from centre, in frame; cmdr 680,371]
-   593     47.2  #18              line        pip: Just hand me a pick, Boss. I'll make sure the fire stays on. [at 656,394 48 from centre, in frame; cmdr 680,371]
-   593     49.2  #19              stage       rhee
-   593     50.6  #19              line        rhee: How long were we under? Never mind. Is anyone hurt? I'll set up by the [at 656,394 49 from centre, in frame; cmdr 680,371]
-   593     50.6  #19              held        1.3 s (stage)
-   593     52.6  #19              arrow       story@330,320
-   665     55.0  oldHome          cue         event=pod_home match={"decoy":true}
-   665     55.0  #17              cue         event=pod_home match={"decoy":true} after=tamHome
-   665     55.0  #17              guide_cue   true ""
-   665     55.0  #23              cue         event=pod_home match={"decoy":true}
-   665     55.0  #23              walk        rhee -> {"last":"pod_home"}
-   665     55.0  #23              arrow       off
-   665     56.2  #23              line        commander: Who was in this? [at 389,322 34 from centre, in frame; cmdr 389,322]
-   665     56.2  #23              held        1.2 s (stage)
-   665     58.2  #23              line        kiln: My logs record the launch. It was flown down manually, no auto-release
-   665     60.2  #23              line        rhee: Opened from the inside. The hatch is packed with dust. Whoever rode it [at 427,333 70 from centre, in frame; cmdr 389,322]
-   665     62.2  #23              walk        rhee -> false
-   711     63.7  #20              cue         event=joined match={"capture":2}
-   711     63.7  #20              walk        okafor -> {"at":[462,330]}
-   711     63.7  #20              line        okafor: Camp's wide open and nobody's on guard. I'll watch the perimeter. [at 421,332 68 from centre, in frame; cmdr 389,322]
-   711     65.7  #20              walk        okafor -> false
-   712     65.8  allHome          cue         goal=main is=done
-   712     65.8  allHome          guide_cue   false ""
-   712     65.8  allHome          spirit      
-   712     65.8  allHome          line        kiln: Power's up. I can open bays five to eight now. Here's my camera at the
-   712     65.8  allHome          objective   main done
-   712     65.8  allHome          level_end   won (goal)
-   712     67.3  allHome          result_held the result waits for the story queue
-   712     67.8  allHome          inset       empty_bays
-   712     67.8  allHome          wait        5.4
-   712     73.2  allHome          line        commander: All four read occupied. All four are empty. [at 389,322 37 from centre, in frame; cmdr 389,322]
-   712     75.2  allHome          line        rhee: Then where is Vale? [at 367,370 74 from centre, in frame; cmdr 389,322]
-   712     77.2  allHome          result      shown
+     0     12.1  -                arrow       story@350,550
+    82     14.8  #2               cue         event=captured match={"capture":0}
+    82     14.8  #2               guide_cue   true {"entity":"core"}
+    82     14.8  #2               arrow       story@330,320
+   183     18.2  #3               cue         event=captured match={"capture":1}
+   183     18.2  #3               guide_cue   true {"entity":"pod_tam"}
+   183     18.2  #3               arrow       story@610,480
+   267     21.0  #5               cue         event=captured match={"capture":2}
+   267     21.0  #5               guide_cue   true {"entity":"core"}
+   267     21.0  #5               arrow       story@330,320
+   345     23.6  pairDone         cue         goal=pair is=done
+   345     23.6  pairDone         guide_cue   true {"entity":"core"}
+   345     23.6  #24              cue         goal=pair is=done
+   345     23.6  #24              camera      {"to":{"entity":"pod_old"},"pan":0.8,"hold":6,"back":0.7,"freeze":false,"stay":true}
+   345     23.6  #24              wait        6
+   345     23.6  #24              objective   pair done
+   361     24.1  #24              line        kiln: One more out there. A fifth pod. It's ours, the lander's escape pod, b
+   361     24.1  #24              arrow       off
+   361     26.1  #24              wait        7
+   362     26.1  #24              arrow       story@330,320
+   390     27.1  #21              cue         event=joined match={"capture":0}
+   390     27.1  #24              objective   first done
+   391     27.1  #14              cue         event=joined match={"capture":1} after=pairDone
+   391     27.1  #14              guide_cue   true {"entity":"pod_okafor"}
+   391     27.1  #22              cue         event=joined match={"capture":1}
+   391     27.1  #14              arrow       off
+   392     27.1  okaHome          cue         event=released match={"capture":2}
+   392     27.1  #17              cue         event=released match={"capture":2} after=pairDone
+   392     27.1  #17              guide_cue   true {"entity":"pod_old"}
+   392     27.1  #23              cue         event=joined match={"capture":2}
+   392     27.1  #17              arrow       story@790,360
+   433     28.5  #4               cue         event=captured match={"capture":3}
+   433     28.5  #4               guide_cue   true {"entity":"pod_rhee"}
+   433     28.5  #4               arrow       off
+   514     31.2  #6               cue         event=captured match={"capture":4}
+   514     31.2  #6               guide_cue   true {"entity":"core"}
+   514     31.2  #6               arrow       story@330,320
+   571     33.1  #24              line        commander: Then I'll bring in all five. [at 536,347 23 from centre, in frame; cmdr 536,347]
+   571     33.1  #24              arrow       off
+   571     35.2  #24              goal        main
+   571     35.2  #21              stage       pip
+   571     36.6  #21              line        pip: Boss! Tell me this is the landing site. No? Thought not. Where is ever [at 513,370 49 from centre, in frame; cmdr 536,347]
+   571     36.6  #21              held        1.4 s (stage)
+   571     38.6  #21              line        commander: Scattered across the plain, and freezing. Can you keep the reactor fed [at 536,347 34 from centre, in frame; cmdr 536,347]
+   571     40.6  #21              line        pip: Just hand me a pick, Boss. I'll make sure the fire stays on. [at 513,370 49 from centre, in frame; cmdr 536,347]
+   571     42.6  #22              stage       rhee
+   571     44.1  #22              line        rhee: How long were we under? Never mind. Is anyone hurt? I'll set up by the [at 512,370 48 from centre, in frame; cmdr 536,347]
+   571     44.1  #22              held        1.5 s (stage)
+   571     46.1  #23              walk        okafor -> {"at":[462,330]}
+   571     46.1  #23              stage       okafor
+   571     48.5  #23              line        okafor: Camp's wide open and nobody's on guard. I'll watch the perimeter. [at 513,368 47 from centre, in frame; cmdr 536,347]
+   571     48.5  #23              held        2.4 s (stage)
+   571     50.6  #23              walk        okafor -> false
+   572     50.6  #23              arrow       story@330,320
+   608     51.8  oldHome          cue         event=pod_home match={"decoy":true}
+   608     51.8  #20              cue         event=pod_home match={"decoy":true} after=okaHome
+   608     51.8  #20              guide_cue   true ""
+   608     51.8  #26              cue         event=pod_home match={"decoy":true}
+   608     51.8  #26              walk        rhee -> {"last":"pod_home"}
+   608     51.8  #26              arrow       off
+   608     52.2  #26              line        commander: Who was in this? [at 388,321 32 from centre, in frame; cmdr 388,321]
+   608     52.2  #26              held        0.4 s (stage)
+   608     54.2  #26              line        kiln: My logs record the launch. It was flown down manually, no auto-release
+   608     56.2  #26              line        rhee: Opened from the inside. The hatch is packed with dust. Whoever rode it [at 423,335 69 from centre, in frame; cmdr 388,321]
+   608     58.2  #26              walk        rhee -> false
+   654     59.7  #25              cue         event=released match={"capture":3}
+   654     59.7  #25              line        tam: So this is the new world. Bit cold. Give me something to do. [at 422,332 70 from centre, in frame; cmdr 388,321]
+   654     61.8  #25              line        commander: Soon. We'll need a grow dome, and someone to run it. [at 388,321 37 from centre, in frame; cmdr 388,321]
+   655     63.8  allHome          cue         goal=main is=done
+   655     63.8  allHome          guide_cue   false ""
+   655     63.8  allHome          spirit      
+   655     63.8  allHome          line        kiln: Power's up. I can open bays five to eight now. Here's my camera at the
+   655     63.8  allHome          objective   main done
+   655     63.8  allHome          level_end   won (goal)
+   655     65.3  allHome          result_held the result waits for the story queue
+   655     65.8  allHome          inset       empty_bays
+   655     65.8  allHome          wait        5.4
+   655     71.2  allHome          line        commander: All four read occupied. All four are empty. [at 388,321 37 from centre, in frame; cmdr 388,321]
+   655     73.2  allHome          line        rhee: Then where is Vale? [at 391,351 62 from centre, in frame; cmdr 388,321]
+   655     75.2  allHome          result      shown
