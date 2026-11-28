@@ -982,7 +982,7 @@ export const marsGreenhouse: Skin = {
         goals: [
           { id: "first", label: "Tow the nearest pod into the heat" },
           { id: "pair", label: "Tow two pods at once" },
-          { id: "main", hold: true, tryAgain: true, label: "Bring all 5 pods home" },
+          { id: "main", hold: true, tryAgain: true, label: "Bring the remaining {pods} home" },
         ],
         cues: [
           // a grey dawn throughout, cooler than level 1's sunrise; the ridge keeps its slow pulse on the same side.
@@ -1462,18 +1462,21 @@ export const marsGreenhouse: Skin = {
         goals: [
           { id: "first", label: "Stop the first raiders" },
           { id: "turret", label: "Build a turret" },
-          { id: "arrive", hold: true, label: "Let the settlers in" },
+          { id: "arrive", hold: true, soon: "Hold the road against the raiders", label: "Let the settlers in" },
           // held until the second wave is on (Doug, 2026-11-27): its raiders drop the scrap to pay for the guard in one go
-          { id: "train", hold: true, label: "Pay with scrap to train a guard" },
+          { id: "train", hold: true, soon: "Fight off the raiders and gather their scrap", label: "Pay with scrap to train a guard" },
           { id: "hold", label: "Keep collecting scrap, hire 1 more guard, and fight defenders to protect our camp till sunrise" },
           { id: "main", label: "Pick up the helmet" },
         ],
-        // the guard is paid in scrap: arrows go to scrap until the commander carries the price, then to the guard pad once it is on the map
+        // the guard is paid in scrap (5, the pad's price), every time, not only the first guard: arrows go to the guard pad whenever the commander
+        // carries the price, to the raiders' road when no scrap is left anywhere (so nobody wonders where more comes from), else to the scrap
         guideRules: [
-          { when: [{ fired: "trainOpen" }, { not: "trainHired" }, { not: "dawn" }, { padVisible: "train" }, { carrying: "res.salvage" }], to: { entity: "train" } },
-          { when: [{ fired: "trainOpen" }, { not: "trainHired" }, { not: "dawn" }] },
-          { when: [{ fired: "trainOpenLate" }, { not: "trainHired" }, { not: "dawn" }, { padVisible: "train" }, { carrying: "res.salvage" }], to: { entity: "train" } },
-          { when: [{ fired: "trainOpenLate" }, { not: "trainHired" }, { not: "dawn" }] },
+          { when: [{ fired: "trainOpen" }, { not: "dawn" }, { padVisible: "train" }, { carrying: "res.salvage", atLeast: 5 }], to: { entity: "train" } },
+          { when: [{ fired: "trainOpen" }, { not: "dawn" }, { none: "res.salvage" }, { raiders: true }], to: { at: [760, 727] } },
+          { when: [{ fired: "trainOpen" }, { not: "dawn" }] },
+          { when: [{ fired: "trainOpenLate" }, { not: "dawn" }, { padVisible: "train" }, { carrying: "res.salvage", atLeast: 5 }], to: { entity: "train" } },
+          { when: [{ fired: "trainOpenLate" }, { not: "dawn" }, { none: "res.salvage" }, { raiders: true }], to: { at: [760, 727] } },
+          { when: [{ fired: "trainOpenLate" }, { not: "dawn" }] },
         ],
         cues: [
           { on: { start: true }, do: [
@@ -1554,7 +1557,7 @@ export const marsGreenhouse: Skin = {
           // far pad: a nearby kill never let the line play), as they come in among the raiders
           { on: { hostile: "hostile.swarmling", r: 800, at: { at: [1000, 800] } }, ordered: true, do: [{ stage: "okafor", by: [-15, -100] }, { line: "Dust mites! The noise is bringing them up out of the sand.", who: "okafor" }] },
           // as soon as the warlord is on screen, not when it reaches the commander (Doug, 2026-11-27); it spawns beyond the map's edge
-          { on: { hostile: "hostile.boss", r: 5000, seen: true }, ordered: true, do: [{ wait: 2.5 }, { stage: "lieutenant" }, { line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
+          { on: { hostile: "hostile.boss", r: 5000, seen: true }, ordered: true, do: [{ wait: 0.5 }, { line: "You should have stayed asleep, Commander.", who: "lieutenant" }] },
           { id: "fall", on: { event: "retreated" }, do: [
             // the commander's last shot: the warlord is thrown down, the helmet comes off, Vale gets up and runs (S32),
             // filmed in the level with play paused (Doug, 2026-11-08); the live scene stands in without the models.

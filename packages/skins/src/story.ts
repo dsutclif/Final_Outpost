@@ -176,7 +176,11 @@ export type StoryCond =
   /** No cue with this id has fired yet. */
   | { not: string }
   /** The commander carries this resource. */
-  | { carrying: string }
+  | { carrying: string; atLeast?: number }
+  /** None of this resource anywhere the commander could pick it up: not carried, not lying on the ground. */
+  | { none: string }
+  /** A raider is alive. */
+  | { raiders: true }
   /** At least this many credits in hand. */
   | { credits: number }
   /** The pad with this id is on the map (not hidden behind a step still to do). */
@@ -218,6 +222,8 @@ export interface StoryGoal {
   tryAgain?: boolean;
   /** Wait for a `{ goal: id }` action before appearing. The slot still shows. */
   hold?: boolean;
+  /** Shown as the goal line while this goal is still held back, so the line under the stars is never empty (no card, no star yet). */
+  soon?: string;
   /** The goal's wording here and on the result screen, instead of the skin's generic one. `{left}` is the time left on a timed goal; `{waves}` is "n waves left" on a waves goal. */
   label?: string;
   /**

@@ -277,7 +277,7 @@ export class StoryDirector {
 
   /** A goal's own wording, where the level gives one, without the time left. */
   goalLabel(id: string): string | undefined {
-    return this.level.goals.find((g) => g.id === id)?.label?.replace(/[:\s]*\{(left|waves)\}/, "");
+    return this.level.goals.find((g) => g.id === id)?.label?.replace(/[:\s]*\{(left|waves)\}/, "").replace("remaining {pods}", "pods");
   }
 
   /** Entities the renderer keeps solid. */
@@ -411,7 +411,8 @@ export class StoryDirector {
       });
     }
     const cur = this.currentGoal();
-    const label = this.over || !cur || (this.level.goalCards && !this.cardDone.has(cur.id)) ? null : this.goalText(cur, tokens);
+    const held = !cur && !this.over ? this.level.goals[this.turn]?.soon ?? null : null;
+    const label = held ?? (this.over || !cur || (this.level.goalCards && !this.cardDone.has(cur.id)) ? null : this.goalText(cur, tokens));
     const key = `${this.settled.join()}|${label}`;
     // story steps have no star slot
     if (key !== this.paintKey) { this.paintKey = key; this.view.goals(this.settled.filter((_, i) => !this.level.goals[i]?.until), label); }
@@ -752,7 +753,9 @@ export class StoryDirector {
   private cond(c: StoryCond, st: State): boolean {
     if ("fired" in c) return this.firedAt.has(c.fired);
     if ("not" in c) return !this.firedAt.has(c.not);
-    if ("carrying" in c) return st.player.stack.includes(c.carrying);
+    if ("carrying" in c) return st.player.stack.filter((r) => r === c.carrying).length >= (c.atLeast ?? 1);
+    if ("none" in c) return !st.player.stack.includes(c.none) && !st.drops.some((d) => d.res === c.none);
+    if ("raiders" in c) return st.hostiles.length > 0;
     if ("credits" in c) return st.currency >= c.credits;
     if ("padVisible" in c) return !!st.pads.find((p) => p.id === c.padVisible)?.visible;
     if ("coinsWaiting" in c) return (st.sales?.pileN ?? 0) > 0;
@@ -877,7 +880,9 @@ export class StoryDirector {
     const waves = Math.max(0, (o?.target ?? 0) - (o?.progress ?? 0));
     return g.label
       .replace("{left}", `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`)
-      .replace("{waves}", `${waves} wave${waves === 1 ? "" : "s"} left`);
+      .replace("{waves}", `${waves} wave${waves === 1 ? "" : "s"} left`)
+      // pods still to bring home: shrinks as pods arrive, so it never counts pods already towed
+      .replace("{pods}", `${waves} pod${waves === 1 ? "" : "s"}`);
   }
 
   private currentGoal(): StoryGoal | null {
