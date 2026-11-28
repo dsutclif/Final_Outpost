@@ -50,118 +50,116 @@
    310     28.3  selaIn           held        3.9 s (freeze)
    311     28.3  shelfStocked     cue         event=deposited match={"res":"res.food_raw_1","to":"sink.sales_point"} after=selaIn
    311     28.3  shelfStocked     kioskRestore 
-   328     28.9  selaMet          cue         who=sela at={"entity":"kiosk"} r=110 after=selaIn
-   328     28.9  selaMet          stage       sela
-   328     28.9  selaMet          line        sela: Well, I guess somebody's living out here. I'm Sela. [at 288,905 107 from centre, in frame; cmdr 223,861]
-   328     30.9  selaMet          line        sela: I trade between the settlements. Salvage, food, whatever people need. [at 288,905 107 from centre, in frame; cmdr 223,861]
-   328     32.9  selaMet          line        commander: Settlements? There are other people on this planet? [at 223,861 35 from centre, in frame; cmdr 223,861]
-   328     35.0  selaMet          line        sela: Colony ships have been setting down at the landing fields for years. Y [at 288,905 107 from centre, in frame; cmdr 223,861]
-   328     37.0  selaMet          line        sela: Three towns along this road, and every one of them is hungry. Start st [at 288,905 107 from centre, in frame; cmdr 223,861]
-   328     39.0  selaMet          line        kiln: Traders. Stock the kiosk's shelf with greens, then stand at the counte
-   328     41.0  selaMet          goal        first
-   328     41.0  selaMet          dots        
-   328     41.0  selaMet          guide_cue   true {"entity":"field1"}
-   328     41.0  selaMet          arrow       story@220,873
-   359     42.0  firstDone        cue         goal=first is=done
-   359     42.0  firstDone        show        
-   359     42.0  firstDone        dotsOff     
-   359     42.0  firstDone        line        kiln: Those coins seem to be the local currency.
-   359     42.0  firstDone        objective   first done
-   359     42.0  firstDone        arrow       off
-   359     44.0  firstDone        line        sela: You built that dome yourselves? Out of your own hull? [at 281,835 67 from centre, in frame; cmdr 223,861]
-   359     46.1  firstDone        line        sela: Save your scrap. My road crew builds for credits, and they bring their [at 281,835 67 from centre, in frame; cmdr 223,861]
-   359     48.1  firstDone        stage       okafor
-   359     49.9  firstDone        line        okafor: A road that brings traders can bring raiders, so... let's build a wall [at 204,826 11 from centre, in frame; cmdr 223,861]
-   359     49.9  firstDone        held        1.9 s (stage)
-   359     52.0  firstDone        line        kiln: Once you've saved enough credits, walk the dashed line and the wall go
-   359     54.0  firstDone        walk        okafor -> false
-   359     54.0  firstDone        arrow       story@220,873
-   478     57.9  #7               cue         event=gathered match={"res":"res.food_raw_1"} after=selaIn
-   478     57.9  #7               guide_cue   true {"entity":"kiosk"}
-   478     57.9  #7               arrow       story@220,830
-   478     57.9  #7               arrow       story@220,873
-   976     74.5  #7               arrow       story@220,240
-  1216     82.5  wallDone         cue         goal=walls is=done
-  1216     82.5  wallDone         stage       rhee
-  1216     82.5  wallDone         objective   walls done
-  1216     82.5  wallDone         arrow       off
-  1216     82.6  wallDone         stage       rhee
-  1216     84.0  wallDone         line        rhee: These pods kept us alive, but they won't last another storm. We need a [at 227,380 41 from centre, in frame; cmdr 239,362]
-  1216     84.0  wallDone         held        1.4 s (stage)
-  1216     86.0  wallDone         camera      {"to":{"entity":"hub"},"pan":0.5,"hold":0.8,"back":0.4}
-  1216     87.7  wallDone         line        kiln: Take one more load of greens to the kiosk, and keep saving credits for
-  1216     87.7  wallDone         held        1.7 s (camera)
-  1216     89.7  wallDone         walk        rhee -> false
-  1216     89.7  wallDone         arrow       story@440,610
-  1273     91.6  wallDone         arrow       story@220,830
-  1422     96.6  wallDone         arrow       story@440,610
-  1427     96.7  proteinTip       cue         event=sold match={"res":"res.food_raw_1"} after=wallDone
-  1427     96.7  proteinTip       line        trader: No protein? I'm leaving. [at 220,830 23 from centre, in frame; cmdr 222,861]
-  1427     96.7  proteinTip       arrow       off
-  1427     98.7  proteinTip       line        sela: Protein sells for a premium around here. Those rock hoppers past the r [at 220,830 24 from centre, in frame; cmdr 222,861]
-  1427    100.8  proteinTip       camera      {"to":{"entity":"flats"},"pan":0.6,"hold":0.8,"back":0.001}
-  1427    102.2  proteinTip       camera      {"to":{"entity":"rockslide"},"pan":0.4,"hold":0.7,"back":0.6}
-  1427    103.9  proteinTip       line        kiln: The slide is loose rock... walk up to it and dig... one section at a t
-  1427    103.9  proteinTip       held        3.1 s (camera)
-  1427    105.9  proteinTip       goal        clear
-  1427    105.9  proteinTip       arrow       story@220,873
-  1966    123.8  digDone          cue         event=zone_cleared
-  1966    123.8  digDone          line        kiln: That slide is fresh. Something up on the ridge shook it loose.
-  1966    123.8  digDone          objective   clear done
-  1966    123.8  digDone          arrow       off
-  1966    125.9  digDone          line        kiln: Rock hoppers. Run into one to knock it down, then pick up the protein 
-  1966    127.9  digDone          arrow       story@220,873
-  3005    162.5  tamOffer         cue         event=sold match={"res":"res.food_raw_2"}
-  3005    162.5  tamOffer         stage       tam
-  3005    162.5  tamOffer         objective   meat done
-  3005    162.5  tamOffer         arrow       off
-  3005    164.5  tamOffer         line        tam: Boss, let me run the dome. You hunt; I'll keep the shelf full of green [at 208,879 45 from centre, in frame; cmdr 222,862]
-  3005    164.5  tamOffer         held        2.0 s (stage)
-  3005    166.5  tamOffer         line        kiln: Pip, Rhee and Okafor are doing the jobs they trained for. A new job ne
-  3005    168.5  tamOffer         goal        train
-  3005    168.5  tamOffer         arrow       story@220,873
-  3109    171.9  tamTrained       cue         goal=train is=done
-  3109    171.9  tamTrained       walk        tam -> false
-  3109    171.9  tamTrained       stage       rhee
-  3109    171.9  tamTrained       objective   train done
-  3109    171.9  tamTrained       arrow       off
-  3109    173.6  tamTrained       stage       rhee
-  3109    175.1  tamTrained       line        rhee: Keep selling. When we have enough, we'll build the hub. [at 507,692 45 from centre, in frame; cmdr 519,675]
-  3109    175.1  tamTrained       held        3.2 s (stage)
-  3109    177.1  tamTrained       walk        rhee -> false
-  3109    177.1  tamTrained       arrow       story@220,873
-  3303    183.6  #14              cue         credits=75 after=tamTrained
-  3303    183.6  #14              line        trader: A town, this close to the ridge? Brave. [at 220,830 29 from centre, in frame; cmdr 197,868]
-  3303    183.6  #14              arrow       off
-  3303    185.6  #14              line        commander: What's on the ridge? [at 197,868 34 from centre, in frame; cmdr 197,868]
-  3303    187.6  #14              line        trader: I don't know, but those folk don't trade, and they aren't friendly. [at 220,830 45 from centre, in frame; cmdr 197,868]
-  3303    189.6  #14              arrow       story@792,613
-  3497    196.1  #14              arrow       story@220,873
-  3842    207.6  #14              arrow       story@792,613
-  3972    211.9  #14              arrow       story@220,830
-  4077    215.4  #14              arrow       story@792,613
-  4095    216.0  #14              arrow       story@220,873
-  4656    234.7  #14              arrow       story@670,400
-  4796    239.4  #14              arrow       story@792,613
-  5032    247.2  hubDone          cue         goal=main is=done
-  5032    247.2  hubDone          guide_cue   false ""
-  5032    247.2  hubDone          freeze      true
-  5032    247.2  hubDone          walk        commander -> {"at":[745,535]}
-  5032    247.2  hubDone          objective   main done
-  5032    247.2  hubDone          level_end   won (goal)
-  5032    247.2  hubDone          vehicle     buggy drives 1000,565 > 880,525 > 795,505 in 2.2s
-  5032    248.7  hubDone          result_held the result waits for the story queue
-  5032    249.3  hubDone          wait        1.8
-  5032    249.4  hubDone          vehicle_parked buggy at 795,505 screen 260,667 of 390x845
-  5032    251.1  hubDone          line        sela: Congratulations. A roof over your heads and a camp worth trading with. [at 795,505 201 from centre, in frame; cmdr 661,409]
-  5032    251.1  hubDone          held        3.9 s (stage)
-  5032    253.1  hubDone          film        chip_handoff
-  5032    259.1  hubDone          line        sela: For your first night under a roof. A Halcyon chip. [at 795,505 201 from centre, in frame; cmdr 661,409]
-  5032    261.1  hubDone          line        commander: Halcyon chips? That's our ship's money. Where did you get it? [at 745,535 188 from centre, in frame; cmdr 661,409]
-  5032    263.1  hubDone          line        sela: Four people in suits like yours still spend them. Up on the ridge. [at 795,505 201 from centre, in frame; cmdr 661,409]
-  5032    265.2  hubDone          line        commander: That's not possible. We've only been down three days. [at 745,535 188 from centre, in frame; cmdr 661,409]
-  5032    267.2  hubDone          line        sela: Friend. The Halcyon came down eleven years ago. [at 795,505 201 from centre, in frame; cmdr 661,409]
-  5032    269.2  hubDone          stage       pip
-  5032    269.8  hubDone          line        pip: Eleven... years? [at 722,558 196 from centre, in frame; cmdr 661,409]
-  5032    269.8  hubDone          held        0.6 s (stage)
-  5032    271.9  hubDone          result      shown
+   331     29.0  selaMet          cue         who=sela at={"entity":"kiosk"} r=110 after=selaIn
+   331     29.0  selaMet          stage       sela
+   331     29.0  selaMet          line        sela: Well, I guess somebody's living out here. I'm Sela. [at 287,915 115 from centre, in frame; cmdr 223,861]
+   331     31.0  selaMet          line        sela: I trade between the settlements. Salvage, food, whatever people need. [at 287,915 115 from centre, in frame; cmdr 223,861]
+   331     33.0  selaMet          line        commander: Settlements? There are other people on this planet? [at 223,861 35 from centre, in frame; cmdr 223,861]
+   331     35.1  selaMet          line        sela: Colony ships have been setting down at the landing fields for years. Y [at 287,915 115 from centre, in frame; cmdr 223,861]
+   331     37.1  selaMet          line        sela: Three towns along this road, and every one of them is hungry. Start st [at 287,915 115 from centre, in frame; cmdr 223,861]
+   331     39.1  selaMet          line        kiln: Traders. Stock the kiosk's shelf with greens, then stand at the counte
+   331     41.1  selaMet          goal        first
+   331     41.1  selaMet          dots        
+   331     41.1  selaMet          guide_cue   true {"entity":"field1"}
+   331     41.1  selaMet          arrow       story@220,873
+   369     42.4  firstDone        cue         goal=first is=done
+   369     42.4  firstDone        show        
+   369     42.4  firstDone        dotsOff     
+   369     42.4  firstDone        line        kiln: Those coins seem to be the local currency.
+   369     42.4  firstDone        objective   first done
+   369     42.4  firstDone        arrow       off
+   369     44.4  firstDone        line        sela: You built that dome yourselves? Out of your own hull? [at 281,830 66 from centre, in frame; cmdr 223,861]
+   369     46.4  firstDone        line        sela: Save your scrap. My road crew builds for credits, and they bring their [at 281,830 66 from centre, in frame; cmdr 223,861]
+   369     48.4  firstDone        stage       okafor
+   369     50.3  firstDone        line        okafor: A road that brings traders can bring raiders, so... let's build a wall [at 204,826 11 from centre, in frame; cmdr 223,861]
+   369     50.3  firstDone        held        1.9 s (stage)
+   369     52.3  firstDone        line        kiln: Once you've saved enough credits, walk the dashed line and the wall go
+   369     54.3  firstDone        walk        okafor -> false
+   369     54.3  firstDone        arrow       story@220,873
+   484     58.1  #7               cue         event=gathered match={"res":"res.food_raw_1"} after=selaIn
+   484     58.1  #7               guide_cue   true {"entity":"kiosk"}
+   484     58.1  #7               arrow       story@220,830
+   484     58.1  #7               arrow       story@220,873
+   959     74.0  #7               arrow       story@220,240
+  1199     82.0  wallDone         cue         goal=walls is=done
+  1199     82.0  wallDone         stage       rhee
+  1199     82.0  wallDone         objective   walls done
+  1199     82.0  wallDone         arrow       off
+  1199     82.0  wallDone         stage       rhee
+  1199     83.4  wallDone         line        rhee: These pods kept us alive, but they won't last another storm. We need a [at 227,380 41 from centre, in frame; cmdr 239,362]
+  1199     83.4  wallDone         held        1.4 s (stage)
+  1199     85.4  wallDone         camera      {"to":{"entity":"hub"},"pan":0.5,"hold":0.8,"back":0.4}
+  1199     87.1  wallDone         line        kiln: Take one more load of greens to the kiosk, and keep saving credits for
+  1199     87.1  wallDone         held        1.7 s (camera)
+  1199     89.1  wallDone         walk        rhee -> false
+  1199     89.1  wallDone         arrow       story@440,610
+  1256     91.0  wallDone         arrow       story@220,830
+  1373     94.9  wallDone         arrow       story@440,610
+  1386     95.4  proteinTip       cue         event=sold match={"res":"res.food_raw_1"} after=wallDone
+  1386     95.4  proteinTip       line        trader: No protein? I'm leaving. [at 220,830 23 from centre, in frame; cmdr 222,861]
+  1386     95.4  proteinTip       arrow       off
+  1386     97.4  proteinTip       line        sela: Protein sells for a premium around here. Those rock hoppers past the r [at 220,830 24 from centre, in frame; cmdr 222,861]
+  1386     99.4  proteinTip       camera      {"to":{"entity":"flats"},"pan":0.6,"hold":0.8,"back":0.001}
+  1386    100.8  proteinTip       camera      {"to":{"entity":"rockslide"},"pan":0.4,"hold":0.7,"back":0.6}
+  1386    102.5  proteinTip       line        kiln: The slide is loose rock... walk up to it and dig... one section at a t
+  1386    102.5  proteinTip       held        3.1 s (camera)
+  1386    104.5  proteinTip       goal        clear
+  1386    104.5  proteinTip       arrow       story@220,873
+  1950    123.3  digDone          cue         event=zone_cleared
+  1950    123.3  digDone          line        kiln: That slide is fresh. Something up on the ridge shook it loose.
+  1950    123.3  digDone          objective   clear done
+  1950    123.3  digDone          arrow       off
+  1950    125.3  digDone          line        kiln: Rock hoppers. Run into one to knock it down, then pick up the protein 
+  1950    127.3  digDone          arrow       story@220,873
+  2943    160.4  tamOffer         cue         event=sold match={"res":"res.food_raw_2"}
+  2943    160.4  tamOffer         stage       tam
+  2943    160.4  tamOffer         objective   meat done
+  2943    160.4  tamOffer         arrow       off
+  2943    162.4  tamOffer         line        tam: Boss, let me run the dome. You hunt; I'll keep the shelf full of green [at 208,878 45 from centre, in frame; cmdr 223,861]
+  2943    162.4  tamOffer         held        2.0 s (stage)
+  2943    164.4  tamOffer         line        kiln: Pip, Rhee and Okafor are doing the jobs they trained for. A new job ne
+  2943    166.4  tamOffer         goal        train
+  2943    166.4  tamOffer         arrow       story@220,873
+  3045    169.8  tamTrained       cue         goal=train is=done
+  3045    169.8  tamTrained       walk        tam -> false
+  3045    169.8  tamTrained       stage       rhee
+  3045    169.8  tamTrained       objective   train done
+  3045    169.8  tamTrained       arrow       off
+  3045    171.5  tamTrained       stage       rhee
+  3045    173.0  tamTrained       line        rhee: Keep selling. When we have enough, we'll build the hub. [at 508,691 45 from centre, in frame; cmdr 520,674]
+  3045    173.0  tamTrained       held        3.2 s (stage)
+  3045    175.0  tamTrained       walk        rhee -> false
+  3045    175.0  tamTrained       arrow       story@220,873
+  3253    181.9  #14              cue         credits=75 after=tamTrained
+  3253    181.9  #14              line        trader: A town, this close to the ridge? Brave. [at 220,830 29 from centre, in frame; cmdr 198,867]
+  3253    181.9  #14              arrow       off
+  3253    183.9  #14              line        commander: What's on the ridge? [at 198,867 34 from centre, in frame; cmdr 198,867]
+  3253    185.9  #14              line        trader: I don't know, but those folk don't trade, and they aren't friendly. [at 220,830 45 from centre, in frame; cmdr 198,867]
+  3253    187.9  #14              arrow       story@792,613
+  3419    193.5  #14              arrow       story@220,873
+  3798    206.1  #14              arrow       story@792,613
+  3868    208.4  #14              arrow       story@220,873
+  4580    232.2  #14              arrow       story@670,400
+  4723    236.9  #14              arrow       story@792,613
+  4957    244.7  hubDone          cue         goal=main is=done
+  4957    244.7  hubDone          guide_cue   false ""
+  4957    244.7  hubDone          freeze      true
+  4957    244.7  hubDone          walk        commander -> {"at":[745,535]}
+  4957    244.7  hubDone          objective   main done
+  4957    244.7  hubDone          level_end   won (goal)
+  4957    244.7  hubDone          vehicle     buggy drives 1000,565 > 880,525 > 795,505 in 2.2s
+  4957    246.2  hubDone          result_held the result waits for the story queue
+  4957    246.8  hubDone          wait        1.8
+  4957    246.9  hubDone          vehicle_parked buggy at 795,505 screen 260,667 of 390x845
+  4957    248.6  hubDone          line        sela: Congratulations. A roof over your heads and a camp worth trading with. [at 795,505 201 from centre, in frame; cmdr 661,409]
+  4957    248.6  hubDone          held        3.9 s (stage)
+  4957    250.6  hubDone          film        chip_handoff
+  4957    256.6  hubDone          line        sela: For your first night under a roof. A Halcyon chip. [at 795,505 201 from centre, in frame; cmdr 661,409]
+  4957    258.6  hubDone          line        commander: Halcyon chips? That's our ship's money. Where did you get it? [at 745,535 188 from centre, in frame; cmdr 661,409]
+  4957    260.6  hubDone          line        sela: Four people in suits like yours still spend them. Up on the ridge. [at 795,505 201 from centre, in frame; cmdr 661,409]
+  4957    262.6  hubDone          line        commander: That's not possible. We've only been down three days. [at 745,535 188 from centre, in frame; cmdr 661,409]
+  4957    264.7  hubDone          line        sela: Friend. The Halcyon came down eleven years ago. [at 795,505 201 from centre, in frame; cmdr 661,409]
+  4957    266.7  hubDone          stage       pip
+  4957    267.3  hubDone          line        pip: Eleven... years? [at 722,558 195 from centre, in frame; cmdr 661,409]
+  4957    267.3  hubDone          held        0.7 s (stage)
+  4957    269.4  hubDone          result      shown

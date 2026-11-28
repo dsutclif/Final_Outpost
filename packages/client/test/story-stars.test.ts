@@ -5,12 +5,12 @@ import { describe, expect, it } from "vitest";
 import { marsGreenhouse } from "@fo/skins";
 
 // A star for every goal in the story levels (outpost-ops#123 part 1): each goal the story shows is a manifest objective,
-// so it has a star slot. The only step still without one is level 1's "Reach the light" (no objective kind for it yet).
+// so it has a star slot. The steps still without one are level 1's "Reach the light" (no objective kind for it yet) and level 3's extra greens trip (a story step, added 2026-11-27).
 // Goals per level today: 4, 3, 8, 5, 6 (level 5 gains "Let the settlers in" in part 1; its helmet goal changes in part 3).
 const here = dirname(fileURLToPath(import.meta.url));
 const manifest = (n: number): { objectives: { id: string }[] } => JSON.parse(readFileSync(resolve(here, `../../../levels/story/story-L00${n}.json`), "utf8"));
-const GOALS = [4, 3, 8, 5, 6];
-const UNSTARRED = new Set(["story-L001:reach"]);
+const GOALS = [4, 3, 9, 5, 6];
+const UNSTARRED = new Set(["story-L001:reach", "story-L003:greens2"]);
 
 describe("story goals and stars", () => {
   for (let n = 1; n <= 5; n++) {
@@ -26,7 +26,7 @@ describe("story goals and stars", () => {
           expect(ids.has(g.id), `${key}:${g.id} is not a manifest objective`).toBe(true);
         }
       }
-      expect(manifest(n).objectives.length).toBe((GOALS[n - 1] ?? 0) - (goals.some((g) => UNSTARRED.has(`${key}:${g.id}`)) ? 1 : 0));
+      expect(manifest(n).objectives.length).toBe((GOALS[n - 1] ?? 0) - goals.filter((g) => UNSTARRED.has(`${key}:${g.id}`)).length);
     });
   }
 });
